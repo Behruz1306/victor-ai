@@ -34,18 +34,12 @@ export function clampBrief(text: string, max = BRIEF_MAX): string {
 
 const IMPLIED: L10n = { en: "Implied by the same message.", ru: "Следует из того же сообщения." };
 
-export function signalTitle(kind: SignalKind, customerName: string): L10n {
+export function signalTitle(kind: SignalKind, taskTitle: L10n | null): L10n {
   const t: Partial<Record<SignalKind, L10n>> = {
-    rude_tone: { en: `Rude reply to ${customerName}`, ru: `Грубый ответ клиенту ${customerName}` },
-    complaint: { en: `${customerName} complained`, ru: `${customerName} жалуется` },
-    context_ignored: {
-      en: `Reply to ${customerName} ignored known context`,
-      ru: `Ответ ${customerName} без учёта контекста`,
-    },
-    eta_not_forwarded: {
-      en: `ETA not forwarded to ${customerName}`,
-      ru: `ETA не передан клиенту ${customerName}`,
-    },
+    rude_tone: { en: "Unprofessional reply to the customer", ru: "Непрофессиональный ответ клиенту" },
+    complaint: { en: "Customer complaint", ru: "Жалоба клиента" },
+    context_ignored: { en: "Reply contradicts what the team already knew", ru: "Ответ противоречит тому, что команда уже знала" },
+    eta_not_forwarded: taskTitle ?? { en: "ETA not passed to the customer", ru: "ETA не передан клиенту" },
   };
   return t[kind] ?? { en: kind, ru: kind };
 }
@@ -239,10 +233,10 @@ export async function applyAnalysis(
       }
     }
     const severity = Math.max(1, Math.min(5, Math.round(f.severity)));
-    const taskChannel = taskId
-      ? (await db.select({ channelId: tasks.channelId }).from(tasks).where(eq(tasks.id, taskId)))[0]
-          ?.channelId
-      : null;
+    const [taskRow] = taskId
+      ? await db.select({ channelId: tasks.channelId, title: tasks.title }).from(tasks).where(eq(tasks.id, taskId))
+      : [];
+    const taskChannel = taskRow?.channelId ?? null;
     const opened = await upsertSignal(db, companyId, {
       dedupeKey:
         f.kind === "eta_not_forwarded"
@@ -259,7 +253,7 @@ export async function applyAnalysis(
         f.kind === "rude_tone" || f.kind === "context_ignored"
           ? (msg.userId ?? customer.assignedUserId)
           : customer.assignedUserId,
-      title: signalTitle(f.kind, customer.name),
+      title: signalTitle(f.kind, taskRow?.title ?? null),
       reason: f.reason,
       evidenceQuote: msg.text.slice(0, 300),
       evidenceMessageId: msg.dbId,

@@ -48,10 +48,10 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Phase gate + commit
 
 ## Phase 5 — Task card, Owner, Lead
-- [ ] `/tasks/[id]` stepper with timestamps, evidence, stuck step, signals
-- [ ] `/owner` 3 KPI tiles + ≤5 digest items + empty state + last updated
-- [ ] `/lead` dispatcher table + drill-down
-- [ ] Phase gate + commit
+- [x] `/tasks/[id]` stepper with timestamps, evidence, stuck step, signals
+- [x] `/owner` 3 KPI tiles + ≤5 digest items + empty state + last updated
+- [x] `/lead` dispatcher table + drill-down
+- [x] Phase gate + commit
 
 ## Phase 6 — Learning loop
 - [x] distill_rule job (mock + LLM), merge similar rules, scope handling
@@ -62,8 +62,8 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [ ] Phase gate + commit
 
 ## Phase 7 — Onboarding, handoff, settings
-- [ ] Owner watch-criteria onboarding (3 questions → structured criteria, editable)
-- [ ] Handoff brief (pick replacement, per-channel brief, reassign on confirm, printable)
+- [x] Owner watch-criteria onboarding (3 questions → structured criteria, editable)
+- [x] Handoff brief (pick replacement, per-channel brief, reassign on confirm, printable)
 - [ ] Settings: SLA, criteria, Telegram status, send mode, LLM provider, token usage + cost, retention, consent notice (+ post to group)
 - [ ] Retention cleanup job
 - [ ] Audit log viewer

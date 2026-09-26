@@ -60,10 +60,7 @@ export function mockOwnerDigest(input: DigestInput): OwnerDigest {
   return {
     items: input.candidates.map((c) => ({
       signal_id: c.signalId,
-      title: {
-        en: `${c.customerName ? `${c.customerName}: ` : ""}${c.title.en}`,
-        ru: `${c.customerName ? `${c.customerName}: ` : ""}${c.title.ru}`,
-      },
+      title: c.title,
       what_happened: c.reason,
       why_it_matters: WHY[c.kind],
     })),
@@ -294,7 +291,9 @@ export function mockHandoff(input: HandoffInput): HandoffOut {
                     `Close “${t.title}” (now: ${t.status.replace("_", " ")}${t.deadlineAt ? `, due ${clock(t.deadlineAt, tz)}` : ""}).`,
                 )
                 .join(" ")
-            : `Introduce yourself to ${input.customer.name} as the new contact.`,
+            : ch.chatType === "customer"
+              ? `Introduce yourself to ${input.customer.name} as the new contact.`
+              : "Nothing pending here; watch it for fleet updates on this customer's loads.",
           ru: tasks.length
             ? tasks
                 .map(
@@ -302,7 +301,9 @@ export function mockHandoff(input: HandoffInput): HandoffOut {
                     `Закрыть «${t.title}» (сейчас: ${t.status.replace("_", " ")}${t.deadlineAt ? `, срок ${clock(t.deadlineAt, tz, "ru")}` : ""}).`,
                 )
                 .join(" ")
-            : `Представиться ${input.customer.name} как новый контакт.`,
+            : ch.chatType === "customer"
+              ? `Представиться ${input.customer.name} как новый контакт.`
+              : "Здесь ничего не висит; следите за обновлениями флота по грузам клиента.",
         },
       };
     }),

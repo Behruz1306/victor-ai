@@ -122,7 +122,7 @@ describe("audience routing and owner ranking", () => {
     }));
     const r = rankForOwner(list, criteria, now);
     expect(r).toHaveLength(5);
-    expect(r[0]!.id).toBe("s0");
-    expect(r.some((x) => x.id === "s7")).toBe(true); // criteria boost beats recency
+    // The critical one and the owner-criteria match (despite being oldest) lead the list.
+    expect(new Set(r.slice(0, 2).map((x) => x.id))).toEqual(new Set(["s0", "s7"]));
   });
 });

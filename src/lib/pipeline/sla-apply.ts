@@ -232,3 +232,22 @@ export async function scheduleOwnerDigest(db: Db, companyId: string): Promise<vo
     debounceMs,
   });
 }
+
+/** Owner criteria changed: recompute who sees each open signal. */
+export async function rerouteOpenSignals(db: Db, companyId: string): Promise<number> {
+  const [company] = await db.select().from(companies).where(eq(companies.id, companyId));
+  if (!company) return 0;
+  const open = await db
+    .select()
+    .from(signals)
+    .where(and(eq(signals.companyId, companyId), eq(signals.status, "open")));
+  let changed = 0;
+  for (const s of open) {
+    const audience = routeAudience(s.severity, s.kind, s.customerId, company.watchCriteria);
+    if (audience !== s.audience) {
+      await db.update(signals).set({ audience }).where(eq(signals.id, s.id));
+      changed++;
+    }
+  }
+  return changed;
+}

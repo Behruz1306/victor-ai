@@ -1,15 +1,24 @@
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { requirePage } from "@/lib/auth/guard";
-import { getLang } from "@/lib/i18n/server";
-import { t } from "@/lib/i18n";
-import { PageHeader, EmptyState } from "@/components/ui/primitives";
+import { can } from "@/lib/auth/rbac";
+import { getDb } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { LeadView } from "./lead-view";
 
-export default async function Page() {
-  await requirePage("view:lead");
-  const lang = await getLang();
-  return (
-    <div>
-      <PageHeader title={t(lang, "lead.title")} />
-      <EmptyState title={t(lang, "common.loading")} />
-    </div>
-  );
+export const metadata = { title: "Team lead" };
+
+export default async function LeadPage() {
+  const ctx = await requirePage("view:lead");
+  const staff = await getDb()
+    .select({ id: users.id, name: users.name, role: users.role })
+    .from(users)
+    .where(
+      and(
+        eq(users.companyId, ctx.companyId),
+        eq(users.active, true),
+        inArray(users.role, ["dispatcher", "lead"]),
+      ),
+    )
+    .orderBy(asc(users.name));
+  return <LeadView canHandoff={can(ctx.role, "manage:handoff")} staff={staff} />;
 }

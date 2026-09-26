@@ -11,7 +11,20 @@ import type { DigestCandidate } from "./types";
 
 export const DIGEST_MAX = 5;
 
-/** Pure ranking: severity × recency × owner-criteria match. Never more than 5. */
+// Relationship damage outranks process slips at equal severity.
+const KIND_WEIGHT: Record<string, number> = {
+  complaint: 1.2,
+  rude_tone: 1.15,
+  overdue: 1.1,
+  no_ack: 1.05,
+  eta_not_forwarded: 1,
+  missing_deadline: 1,
+  context_ignored: 0.95,
+  reply_needed: 0.9,
+  customer_silent: 0.8,
+};
+
+/** Pure ranking: severity × kind weight × recency × owner-criteria match. Never more than 5. */
 export function rankForOwner(
   list: Pick<Signal, "id" | "kind" | "severity" | "customerId" | "createdAt">[],
   criteria: WatchCriteria,
@@ -22,7 +35,7 @@ export function rankForOwner(
       const hours = Math.max(0, (now.getTime() - s.createdAt.getTime()) / 3_600_000);
       const recency = 1 + 1 / (1 + hours / 12); // 2 → 1 over ~a day
       const c = matchCriterion(criteria, s.kind, s.severity, s.customerId);
-      const score = s.severity * recency * (c ? 1.5 : 1);
+      const score = s.severity * (KIND_WEIGHT[s.kind] ?? 1) * recency * (c ? 1.5 : 1);
       return { id: s.id, score: Math.round(score * 100) / 100, criterion: c?.text ?? null };
     })
     .sort((a, b) => b.score - a.score)
