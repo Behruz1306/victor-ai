@@ -1,0 +1,24 @@
+// Dev helper: log in as Timur, edit the first suggestion with a reason, screenshot the result.
+import { chromium } from "@playwright/test";
+const out = process.argv[2];
+const base = process.env.BASE_URL ?? "http://localhost:3000";
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+await page.goto(`${base}/login`);
+await page.getByTestId("demo-login-dispatcher").click();
+await page.waitForURL("**/dispatcher**");
+const card = page.getByTestId("suggestion-card").first();
+await card.getByTestId("suggestion-edit").click();
+const box = card.getByTestId("suggestion-edit-text");
+const text = await box.inputValue();
+await box.fill(text.replace("around 4:30 PM", "4:30 PM CST").replace("Load 48207 is", "Load 48207, truck #214 is"));
+await card.getByTestId("suggestion-edit-reason").fill("Apex wants ETA in CST and with the truck number");
+await card.getByTestId("suggestion-save-edit").click();
+await page.getByTestId("toast").waitFor();
+console.log("TOAST:", await page.getByTestId("toast").innerText());
+await page.waitForTimeout(9000);
+await page.screenshot({ path: out });
+console.log("EDIT RATE:", await page.getByTestId("edit-rate").innerText());
+const cards = await page.getByTestId("suggestion-card").allInnerTexts();
+console.log("CARDS:\n" + cards.join("\n-----\n"));
+await browser.close();

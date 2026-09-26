@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { and, eq, asc } from "drizzle-orm";
+import { and, eq, asc, desc, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { users, companies, ROLES } from "@/lib/db/schema";
 import { getSession } from "@/lib/auth/session";
@@ -21,7 +21,8 @@ export const POST = handle(async (req) => {
     .from(users)
     .innerJoin(companies, eq(companies.id, users.companyId))
     .where(and(eq(companies.isDemo, true), eq(users.role, role), eq(users.active, true)))
-    .orderBy(asc(users.name))
+    // The dispatcher with the most customers is the demo protagonist (Timur).
+    .orderBy(desc(sql`(select count(*) from customers c where c.assigned_user_id = ${users.id})`), asc(users.name))
     .limit(1);
   if (!user) throw new HttpError(404, "demo company not seeded — run pnpm seed");
   const u = user.user;

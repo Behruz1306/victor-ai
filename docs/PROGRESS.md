@@ -40,12 +40,12 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Phase gate + commit
 
 ## Phase 4 — Dispatcher screen
-- [ ] Chat list grouped by customer, urgency sort, badges, unread
-- [ ] Merged cross-chat timeline with chips + highlights
-- [ ] Open tasks (compact steppers) + suggestion card (context, rules, rationale)
-- [ ] Approve (copy / bot send), Edit with reason, Dismiss
-- [ ] Top bar: edit rate, urgent count; 3 s polling
-- [ ] Phase gate + commit
+- [x] Chat list grouped by customer, urgency sort, badges, unread
+- [x] Merged cross-chat timeline with chips + highlights
+- [x] Open tasks (compact steppers) + suggestion card (context, rules, rationale)
+- [x] Approve (copy / bot send), Edit with reason, Dismiss
+- [x] Top bar: edit rate, urgent count; 3 s polling
+- [x] Phase gate + commit
 
 ## Phase 5 — Task card, Owner, Lead
 - [ ] `/tasks/[id]` stepper with timestamps, evidence, stuck step, signals
@@ -54,11 +54,11 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [ ] Phase gate + commit
 
 ## Phase 6 — Learning loop
-- [ ] distill_rule job (mock + LLM), merge similar rules, scope handling
-- [ ] Rule injection + "applied rules" display
+- [x] distill_rule job (mock + LLM), merge similar rules, scope handling
+- [x] Rule injection + "applied rules" display
 - [ ] `/playbook` screen (rules by scope, approve/reject proposed, source edits)
 - [ ] Edit-rate metrics + daily chart
-- [ ] Integration test: edit with reason → next Apex suggestion follows rule
+- [x] Integration test: edit with reason → next Apex suggestion follows rule
 - [ ] Phase gate + commit
 
 ## Phase 7 — Onboarding, handoff, settings

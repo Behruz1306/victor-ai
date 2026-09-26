@@ -30,3 +30,4 @@ One line per decision: what and why.
 - Env template ships as `env.example` (not `.env.example`): this build session's permission rules forbid writing dot-env files. Copy it to `.env`; all scripts use `--env-file-if-exists=.env` and dev falls back to safe local defaults (dev-only session secret, localhost:5433 DB).
 - `system_state` (key/value) is a global infra table for worker heartbeat and bot identity; it holds no tenant data, so it has no company_id (exception to the 'every table has company_id' rule, like the job queue's global jobs).
 - Phases 2 and 3 were built together and committed as one commit: the Sources mapping UI needs the LLM layer (AI mapping proposal) and the worker handlers need the pipeline.
+- In DEMO_MODE, Telegram messages use a 5 s analysis debounce (15 s otherwise) so the live-mode demo meets the ~15 s promise including processing and 3 s UI polling.

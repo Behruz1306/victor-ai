@@ -7,7 +7,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { channels, companies, systemState } from "@/lib/db/schema";
 import { env } from "@/lib/env";
-import { ingestMessage } from "@/lib/ingest/ingest";
+import { ingestMessage, ANALYSIS_DEBOUNCE_MS } from "@/lib/ingest/ingest";
 import {
   normalizeTelegramBusiness,
   normalizeTelegramGroup,
@@ -45,7 +45,10 @@ export function createBot(db: Db): Bot | null {
       console.warn("[telegram] no company in the database yet — message ignored");
       return;
     }
-    const res = await ingestMessage(db, companyId, normalized);
+    // Live demo: a message typed in Telegram must show up in ~15 s, so debounce less.
+    const res = await ingestMessage(db, companyId, normalized, {
+      debounceMs: env().demoMode ? 5_000 : ANALYSIS_DEBOUNCE_MS,
+    });
     // Never log message bodies at info level (SECURITY.md).
     console.log(
       `[telegram] ingested chat=${normalized.channelExternalId} msg=${normalized.messageExternalId} new=${res.inserted} flagged=${res.flagged}`,

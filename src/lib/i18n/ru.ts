@@ -154,6 +154,14 @@ export const ru: Dict = {
   "disp.chatsCount": "{n} чатов",
   "disp.editRateNone": "решений пока нет",
 
+  "disp.allChatsFilter": "Все чаты",
+  "disp.thisChatOnly": "Только этот чат",
+  "disp.sentVia": "отправлено через Pulse",
+  "disp.editing": "Исправьте сообщение",
+  "disp.provider": "AI",
+  "disp.crossChat": "из другого чата",
+  "disp.done": "Готово",
+  "disp.recentlyClosed": "Недавно выполнены",
   "task.path": "Путь задачи",
   "task.stuckHere": "Застряла здесь",
   "task.responsible": "Ответственный",
@@ -250,7 +258,7 @@ export const ru: Dict = {
   "pb.byCustomer": "По клиентам",
   "pb.byDispatcher": "По диспетчерам",
   "pb.noDecisions": "Подтверждённых или исправленных подсказок пока нет.",
-  "pb.decisions": "{n} решений",
+  "pb.decisions": "решений: {n}",
   "pb.rules": "Правила",
 
   "src.title": "Источники",

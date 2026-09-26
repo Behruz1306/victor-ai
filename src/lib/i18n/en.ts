@@ -163,6 +163,14 @@ export const en = {
   "disp.editRateNone": "no decisions yet",
 
   // task card
+  "disp.allChatsFilter": "All chats",
+  "disp.thisChatOnly": "Only this chat",
+  "disp.sentVia": "sent via Pulse",
+  "disp.editing": "Edit the message",
+  "disp.provider": "AI",
+  "disp.crossChat": "from another chat",
+  "disp.done": "Done",
+  "disp.recentlyClosed": "Recently delivered",
   "task.path": "Task path",
   "task.stuckHere": "Stuck here",
   "task.responsible": "Responsible",
@@ -264,7 +272,7 @@ export const en = {
   "pb.byCustomer": "By customer",
   "pb.byDispatcher": "By dispatcher",
   "pb.noDecisions": "No approved or edited suggestions yet.",
-  "pb.decisions": "{n} decisions",
+  "pb.decisions": "decisions: {n}",
   "pb.rules": "Rules",
 
   // sources

@@ -1,15 +1,41 @@
+import { and, asc, eq } from "drizzle-orm";
 import { requirePage } from "@/lib/auth/guard";
-import { getLang } from "@/lib/i18n/server";
-import { t } from "@/lib/i18n";
-import { PageHeader, EmptyState } from "@/components/ui/primitives";
+import { getDb } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { providerInfo } from "@/lib/llm";
+import { DispatcherView } from "./dispatcher-view";
 
-export default async function Page() {
-  await requirePage("view:dispatcher");
-  const lang = await getLang();
+export const metadata = { title: "Dispatcher" };
+
+export default async function DispatcherPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ c?: string; ch?: string }>;
+}) {
+  const ctx = await requirePage("view:dispatcher");
+  const sp = await searchParams;
+  const uuid = /^[0-9a-f-]{36}$/i;
+  const dispatchers =
+    ctx.role === "dispatcher"
+      ? []
+      : await getDb()
+          .select({ id: users.id, name: users.name })
+          .from(users)
+          .where(
+            and(
+              eq(users.companyId, ctx.companyId),
+              eq(users.role, "dispatcher"),
+              eq(users.active, true),
+            ),
+          )
+          .orderBy(asc(users.name));
   return (
-    <div>
-      <PageHeader title={t(lang, "disp.title")} />
-      <EmptyState title={t(lang, "common.loading")} />
-    </div>
+    <DispatcherView
+      initialCustomer={sp.c && uuid.test(sp.c) ? sp.c : null}
+      initialChannel={sp.ch && uuid.test(sp.ch) ? sp.ch : null}
+      dispatchers={dispatchers}
+      canViewOthers={ctx.role !== "dispatcher"}
+      provider={providerInfo().provider}
+    />
   );
 }

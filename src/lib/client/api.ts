@@ -30,3 +30,12 @@ export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
 }
 
 export const POLL_MS = 3000;
+
+/** Type of a server value after JSON round-trip (Dates become strings). */
+export type Jsonify<T> = T extends Date
+  ? string
+  : T extends (infer U)[]
+    ? Jsonify<U>[]
+    : T extends object
+      ? { [K in keyof T]: Jsonify<T[K]> }
+      : T;
