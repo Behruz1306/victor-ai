@@ -1,15 +1,10 @@
 import { requirePage } from "@/lib/auth/guard";
-import { getLang } from "@/lib/i18n/server";
-import { t } from "@/lib/i18n";
-import { PageHeader, EmptyState } from "@/components/ui/primitives";
+import { can } from "@/lib/auth/rbac";
+import { PlaybookView } from "./playbook-view";
 
-export default async function Page() {
-  await requirePage("view:playbook");
-  const lang = await getLang();
-  return (
-    <div>
-      <PageHeader title={t(lang, "pb.title")} />
-      <EmptyState title={t(lang, "common.loading")} />
-    </div>
-  );
+export const metadata = { title: "Playbook" };
+
+export default async function PlaybookPage() {
+  const ctx = await requirePage("view:playbook");
+  return <PlaybookView canManage={can(ctx.role, "manage:rules")} />;
 }

@@ -56,10 +56,10 @@ Tick items as they are finished. Blockers go to the bottom section.
 ## Phase 6 — Learning loop
 - [x] distill_rule job (mock + LLM), merge similar rules, scope handling
 - [x] Rule injection + "applied rules" display
-- [ ] `/playbook` screen (rules by scope, approve/reject proposed, source edits)
-- [ ] Edit-rate metrics + daily chart
+- [x] `/playbook` screen (rules by scope, approve/reject proposed, source edits)
+- [x] Edit-rate metrics + daily chart
 - [x] Integration test: edit with reason → next Apex suggestion follows rule
-- [ ] Phase gate + commit
+- [x] Phase gate + commit
 
 ## Phase 7 — Onboarding, handoff, settings
 - [x] Owner watch-criteria onboarding (3 questions → structured criteria, editable)

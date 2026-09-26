@@ -259,6 +259,7 @@ export const ru: Dict = {
   "pb.byDispatcher": "По диспетчерам",
   "pb.noDecisions": "Подтверждённых или исправленных подсказок пока нет.",
   "pb.decisions": "решений: {n}",
+  "pb.table": "Таблица",
   "pb.rules": "Правила",
 
   "src.title": "Источники",

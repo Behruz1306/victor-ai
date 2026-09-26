@@ -273,6 +273,7 @@ export const en = {
   "pb.byDispatcher": "By dispatcher",
   "pb.noDecisions": "No approved or edited suggestions yet.",
   "pb.decisions": "decisions: {n}",
+  "pb.table": "Table view",
   "pb.rules": "Rules",
 
   // sources
