@@ -1,0 +1,405 @@
+{
+  "_comment": "RAW DATA ONLY: company, people, chats and messages exactly as they would arrive from Telegram. No tasks, signals or analysis here - the pipeline produces those. Times are company-local (America/Chicago); day -1 = yesterday.",
+  "company": {
+    "name": "Blue Ridge Freight LLC",
+    "industry": "trucking",
+    "timezone": "America/Chicago",
+    "about": "Carrier in Illinois, 22 trucks (reefer + dry van)"
+  },
+  "users": [
+    {
+      "key": "rustam",
+      "name": "Rustam",
+      "email": "owner@demo.pulse",
+      "role": "owner",
+      "team": "Management"
+    },
+    {
+      "key": "dilnoza",
+      "name": "Dilnoza",
+      "email": "lead@demo.pulse",
+      "role": "lead",
+      "team": "Dispatch"
+    },
+    {
+      "key": "timur",
+      "name": "Timur",
+      "email": "timur@demo.pulse",
+      "role": "dispatcher",
+      "team": "Dispatch"
+    },
+    {
+      "key": "aziz",
+      "name": "Aziz",
+      "email": "aziz@demo.pulse",
+      "role": "dispatcher",
+      "team": "Dispatch"
+    }
+  ],
+  "customers": [
+    { "key": "apex", "name": "Apex Logistics", "kind": "broker", "assigned": "timur" },
+    { "key": "glf", "name": "Great Lakes Foods", "kind": "shipper", "assigned": "timur" },
+    { "key": "summit", "name": "Summit Brokerage", "kind": "broker", "assigned": "aziz" }
+  ],
+  "people": [
+    { "key": "mike", "name": "Mike Reynolds (Apex)" },
+    { "key": "sarah", "name": "Sarah Kim | Apex Tracking" },
+    { "key": "linda", "name": "Linda Novak - GLF Shipping" },
+    { "key": "jake", "name": "Jake Turner (Summit)" },
+    { "key": "karen", "name": "Karen Liu Summit AP" },
+    { "key": "timur", "name": "Timur Dispatch", "user": "timur" },
+    { "key": "aziz", "name": "Aziz BlueRidge", "user": "aziz" },
+    { "key": "dilnoza", "name": "Dilnoza", "user": "dilnoza" },
+    { "key": "bakhtiyor", "name": "Bakhtiyor Fleet" },
+    { "key": "oybek", "name": "Oybek (fleet)" }
+  ],
+  "channels": [
+    {
+      "key": "apex-cust",
+      "title": "Apex ↔ Blue Ridge",
+      "chat_type": "customer",
+      "customer": "apex"
+    },
+    { "key": "apex-int", "title": "Dispatch: Apex", "chat_type": "internal", "customer": "apex" },
+    { "key": "fleet", "title": "Fleet", "chat_type": "fleet", "customer": null },
+    {
+      "key": "glf-cust",
+      "title": "Great Lakes Foods ↔ Blue Ridge",
+      "chat_type": "customer",
+      "customer": "glf"
+    },
+    {
+      "key": "glf-int",
+      "title": "Dispatch: Great Lakes",
+      "chat_type": "internal",
+      "customer": "glf"
+    },
+    {
+      "key": "summit-cust",
+      "title": "Summit ↔ Blue Ridge",
+      "chat_type": "customer",
+      "customer": "summit"
+    },
+    {
+      "key": "summit-int",
+      "title": "Dispatch: Summit",
+      "chat_type": "internal",
+      "customer": "summit"
+    },
+    {
+      "key": "summit-bill",
+      "title": "Summit Billing",
+      "chat_type": "billing",
+      "customer": "summit"
+    }
+  ],
+  "messages": [
+    {
+      "key": "g1",
+      "day": -1,
+      "time": "07:40",
+      "channel": "glf-cust",
+      "from": "linda",
+      "text": "Good morning, we need 2 reefers Thursday from our Milwaukee plant to Minneapolis, PU 6am and 9am. POs 7781 / 7782. Can you do both?"
+    },
+    {
+      "key": "g2",
+      "day": -1,
+      "time": "07:44",
+      "channel": "glf-cust",
+      "from": "timur",
+      "text": "Good morning Linda! Yes, checking now, will confirm both within the hour.",
+      "reply_to": "g1"
+    },
+    {
+      "key": "g3",
+      "day": -1,
+      "time": "07:46",
+      "channel": "glf-int",
+      "from": "timur",
+      "text": "Бахтиёр, на четверг 2 рефа Милуоки → Миннеаполис, PU 6:00 и 9:00, PO 7781/7782. Кто свободен?"
+    },
+    {
+      "key": "f1",
+      "day": -1,
+      "time": "08:05",
+      "channel": "fleet",
+      "from": "bakhtiyor",
+      "text": "По Great Lakes: траки 402 и 415 свободны в четверг, оба рефа, можно ставить на 7781 и 7782."
+    },
+    {
+      "key": "g4",
+      "day": -1,
+      "time": "08:15",
+      "channel": "glf-cust",
+      "from": "timur",
+      "text": "Linda, confirmed: truck #402 for the 6am PU (PO 7781) and #415 for 9am (PO 7782). Drivers will call 30 min before arrival."
+    },
+    {
+      "key": "g5",
+      "day": -1,
+      "time": "08:17",
+      "channel": "glf-cust",
+      "from": "linda",
+      "text": "Perfect, thank you!"
+    },
+
+    {
+      "key": "a1",
+      "day": -1,
+      "time": "08:05",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Morning! Have a dry van load Peoria IL → St. Louis MO, PU tomorrow 8am, DEL same day 3pm. 42k lbs, $1,150. Load 48221. Can you cover?"
+    },
+    {
+      "key": "a2",
+      "day": -1,
+      "time": "08:07",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "Morning Mike, got it. Checking which truck is closest.",
+      "reply_to": "a1"
+    },
+    {
+      "key": "i1",
+      "day": -1,
+      "time": "08:10",
+      "channel": "apex-int",
+      "from": "timur",
+      "text": "Ойбек, кто завтра свободен в районе Peoria? Нужен dry van на 8 утра, груз Apex 48221 до St. Louis."
+    },
+    {
+      "key": "f2",
+      "day": -1,
+      "time": "08:18",
+      "channel": "fleet",
+      "from": "oybek",
+      "text": "118-й освобождается сегодня вечером в Bloomington, завтра к 8 будет в Peoria без проблем. Под 48221 ставим его."
+    },
+    {
+      "key": "a3",
+      "day": -1,
+      "time": "08:20",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "Mike, we'll confirm the truck on 48221 within 30 min, finalizing driver hours."
+    },
+    {
+      "key": "a4",
+      "day": -1,
+      "time": "08:30",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Also - load 48190 delivered this morning in Indianapolis? Need the POD to close it out."
+    },
+    {
+      "key": "a5",
+      "day": -1,
+      "time": "08:41",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "Confirmed: truck #118 covers 48221, PU tomorrow 8:00 at Peoria. Please send the rate con.",
+      "reply_to": "a1"
+    },
+    {
+      "key": "a6",
+      "day": -1,
+      "time": "08:44",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Rate con sent, thanks Timur 👍"
+    },
+    {
+      "key": "a7",
+      "day": -1,
+      "time": "08:52",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "Yes, 48190 delivered at 7:40. Will send POD by 3pm today.",
+      "reply_to": "a4"
+    },
+    {
+      "key": "i2",
+      "day": -1,
+      "time": "09:00",
+      "channel": "apex-int",
+      "from": "timur",
+      "text": "Ойбек, попроси водителя по 48190 скинуть фото POD, брокер ждёт."
+    },
+    {
+      "key": "a8",
+      "day": -1,
+      "time": "09:12",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Need a reefer Chicago IL → Dallas TX, PU tomorrow 6am, 38k lbs frozen, temp -10F. Load 48230, rate $2,900. Can you cover?"
+    },
+    {
+      "key": "a9",
+      "day": -1,
+      "time": "09:25",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "ok",
+      "reply_to": "a8"
+    },
+    {
+      "key": "a10",
+      "day": -1,
+      "time": "10:30",
+      "channel": "apex-cust",
+      "from": "sarah",
+      "text": "Hi team, need an ETA on load 48207 (Joliet → Memphis). Receiver is asking."
+    },
+    {
+      "key": "a11",
+      "day": -1,
+      "time": "10:34",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "Checking, will update shortly",
+      "reply_to": "a10"
+    },
+    {
+      "key": "i3",
+      "day": -1,
+      "time": "10:36",
+      "channel": "apex-int",
+      "from": "timur",
+      "text": "Бахтиёр, какой ETA по 48207 в Мемфис? Брокер спрашивает."
+    },
+    {
+      "key": "f3",
+      "day": -1,
+      "time": "11:02",
+      "channel": "fleet",
+      "from": "bakhtiyor",
+      "text": "По 48207: трак 214, водитель Санжар, сейчас проезжает Carbondale. В Мемфисе будет примерно в 16:30 по нашему времени, задержек нет."
+    },
+    {
+      "key": "i4",
+      "day": -1,
+      "time": "12:05",
+      "channel": "apex-int",
+      "from": "dilnoza",
+      "text": "Тимур, по Apex всё нормально? Они вчера жаловались на скорость ответов."
+    },
+    {
+      "key": "i5",
+      "day": -1,
+      "time": "12:09",
+      "channel": "apex-int",
+      "from": "timur",
+      "text": "да, всё под контролем"
+    },
+    {
+      "key": "a12",
+      "day": -1,
+      "time": "14:10",
+      "channel": "apex-cust",
+      "from": "sarah",
+      "text": "Timur, this is the third time we are chasing you for updates on 48207. Receiver is calling me every hour. This is not ok."
+    },
+    {
+      "key": "a13",
+      "day": -1,
+      "time": "14:18",
+      "channel": "apex-cust",
+      "from": "timur",
+      "text": "Sarah I have 30 loads today, not just yours. Stop spamming the chat, you will get the ETA when I have it.",
+      "reply_to": "a12"
+    },
+    {
+      "key": "f4",
+      "day": -1,
+      "time": "15:40",
+      "channel": "fleet",
+      "from": "oybek",
+      "text": "Санжар по 48190 говорит POD у него в кабине, скинет вечером когда встанет на отдых."
+    },
+    {
+      "key": "a14",
+      "day": -1,
+      "time": "16:05",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Timur, any news on the reefer 48230 for tomorrow 6am? Shipper needs a carrier confirmed by 5pm."
+    },
+
+    {
+      "key": "s1",
+      "day": -1,
+      "time": "09:00",
+      "channel": "summit-cust",
+      "from": "jake",
+      "text": "Hey, can you send the BOL for load S-5512? Our AP needs it."
+    },
+    {
+      "key": "s2",
+      "day": -1,
+      "time": "09:03",
+      "channel": "summit-cust",
+      "from": "aziz",
+      "text": "Sure Jake, sending it within the hour.",
+      "reply_to": "s1"
+    },
+    {
+      "key": "s3",
+      "day": -1,
+      "time": "09:40",
+      "channel": "summit-cust",
+      "from": "aziz",
+      "text": "Here is the BOL for S-5512 (attached: BOL_S-5512.pdf)."
+    },
+    {
+      "key": "s4",
+      "day": -1,
+      "time": "09:41",
+      "channel": "summit-cust",
+      "from": "jake",
+      "text": "Got it, thanks."
+    },
+    {
+      "key": "b1",
+      "day": -1,
+      "time": "11:15",
+      "channel": "summit-bill",
+      "from": "karen",
+      "text": "Hi, invoice #BR-2291 shows $1,480 but the rate con for S-5498 says $1,380. Please fix and resend the invoice."
+    },
+    {
+      "key": "si1",
+      "day": -1,
+      "time": "13:20",
+      "channel": "summit-int",
+      "from": "aziz",
+      "text": "Кто выставлял инвойс BR-2291? Надо проверить сумму."
+    },
+    {
+      "key": "s5",
+      "day": -1,
+      "time": "15:30",
+      "channel": "summit-cust",
+      "from": "jake",
+      "text": "Driver on S-5520 waited 3 hrs at the receiver. Please send the detention request with in/out times."
+    },
+    {
+      "key": "s6",
+      "day": -1,
+      "time": "15:45",
+      "channel": "summit-cust",
+      "from": "aziz",
+      "text": "Got it, will send the detention paperwork tomorrow by 10am.",
+      "reply_to": "s5"
+    },
+    {
+      "key": "f5",
+      "day": -1,
+      "time": "17:30",
+      "channel": "fleet",
+      "from": "bakhtiyor",
+      "text": "Трак 305 на ремонте до пятницы (тормоза). В планах на неделю его не ставим."
+    }
+  ]
+}

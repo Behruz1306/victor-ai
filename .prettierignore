@@ -1,0 +1,7 @@
+node_modules
+.next
+dist
+reference
+drizzle
+pnpm-lock.yaml
+docs/screenshots

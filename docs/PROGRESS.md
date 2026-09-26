@@ -10,14 +10,14 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Commit phase 0
 
 ## Phase 1 — Scaffold & infra
-- [ ] Next.js 15 + Tailwind v4 + UI kit + ESLint + Prettier + Vitest + Playwright
-- [ ] Drizzle schema (all tables of 5.2) + first migration (with `CREATE EXTENSION vector`)
-- [ ] docker-compose.yml (db pgvector/pgvector:pg16), .env.example
-- [ ] Auth (bcrypt + iron-session), login rate limit, RBAC guard, same-origin check
-- [ ] App shell: role-aware nav, EN/RU toggle, light/dark
-- [ ] `/api/health` with DB check
-- [ ] Role-specific empty screens; security headers
-- [ ] Phase gate + commit
+- [x] Next.js 15 + Tailwind v4 + UI kit + ESLint + Prettier + Vitest + Playwright
+- [x] Drizzle schema (all tables of 5.2) + first migration (with `CREATE EXTENSION vector`)
+- [x] docker-compose.yml (db pgvector/pgvector:pg16), .env.example
+- [x] Auth (bcrypt + iron-session), login rate limit, RBAC guard, same-origin check
+- [x] App shell: role-aware nav, EN/RU toggle, light/dark
+- [x] `/api/health` with DB check
+- [x] Role-specific empty screens; security headers
+- [x] Phase gate + commit
 
 ## Phase 2 — Ingestion
 - [ ] Normalizer contract + `ingestMessage()` (upsert channel/participant, injection screen, idempotent insert, debounced job)

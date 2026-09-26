@@ -27,3 +27,5 @@ One line per decision: what and why.
 - Daily per-customer summaries are produced as `day_summary` inside the same analysis call (no extra LLM call) and stored in `daily_summaries`; they feed the handoff brief (Iva memory-tree idea).
 - Iva userbot (personal account reading) is not implemented — ToS risk; documented as a future read-only connector behind a disabled flag.
 - Prod worker is bundled with esbuild into `dist/worker.mjs` (tsc can't resolve Next-style path aliases without extra tooling).
+- Env template ships as `env.example` (not `.env.example`): this build session's permission rules forbid writing dot-env files. Copy it to `.env`; all scripts use `--env-file-if-exists=.env` and dev falls back to safe local defaults (dev-only session secret, localhost:5433 DB).
+- `system_state` (key/value) is a global infra table for worker heartbeat and bot identity; it holds no tenant data, so it has no company_id (exception to the 'every table has company_id' rule, like the job queue's global jobs).

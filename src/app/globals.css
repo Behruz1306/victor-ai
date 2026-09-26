@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f6f7f9;
+  --foreground: #16181d;
+  --card: #ffffff;
+  --card-foreground: #16181d;
+  --muted: #eef0f3;
+  --muted-foreground: #5d6572;
+  --border: #e2e5ea;
+  --input: #d7dbe2;
+  --ring: #4f46e5;
+  --primary: #4338ca;
+  --primary-foreground: #ffffff;
+  --primary-soft: #eef0ff;
+  --sev-5: #b91c1c;
+  --sev-5-soft: #fdecec;
+  --sev-4: #c2410c;
+  --sev-4-soft: #fff1e6;
+  --sev-3: #a16207;
+  --sev-3-soft: #fdf6dc;
+  --sev-2: #0369a1;
+  --sev-2-soft: #e6f3fb;
+  --ok: #047857;
+  --ok-soft: #e3f6ee;
+  --chip-customer: #4338ca;
+  --chip-internal: #0e7490;
+  --chip-fleet: #7c3aed;
+  --chip-billing: #b45309;
+  --chip-support: #be185d;
+}
+
+.dark {
+  --background: #0f1115;
+  --foreground: #e7e9ee;
+  --card: #171a20;
+  --card-foreground: #e7e9ee;
+  --muted: #1f232b;
+  --muted-foreground: #9aa2b1;
+  --border: #2a2f39;
+  --input: #353b47;
+  --ring: #818cf8;
+  --primary: #818cf8;
+  --primary-foreground: #0f1115;
+  --primary-soft: #23264a;
+  --sev-5: #f87171;
+  --sev-5-soft: #3a1a1c;
+  --sev-4: #fb923c;
+  --sev-4-soft: #3a2415;
+  --sev-3: #facc15;
+  --sev-3-soft: #352d10;
+  --sev-2: #38bdf8;
+  --sev-2-soft: #10293a;
+  --ok: #34d399;
+  --ok-soft: #0f2e24;
+  --chip-customer: #a5b4fc;
+  --chip-internal: #67e8f9;
+  --chip-fleet: #c4b5fd;
+  --chip-billing: #fcd34d;
+  --chip-support: #f9a8d4;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-sev-5: var(--sev-5);
+  --color-sev-5-soft: var(--sev-5-soft);
+  --color-sev-4: var(--sev-4);
+  --color-sev-4-soft: var(--sev-4-soft);
+  --color-sev-3: var(--sev-3);
+  --color-sev-3-soft: var(--sev-3-soft);
+  --color-sev-2: var(--sev-2);
+  --color-sev-2-soft: var(--sev-2-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-chip-customer: var(--chip-customer);
+  --color-chip-internal: var(--chip-internal);
+  --color-chip-fleet: var(--chip-fleet);
+  --color-chip-billing: var(--chip-billing);
+  --color-chip-support: var(--chip-support);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-feature-settings:
+    "tnum" 1,
+    "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}

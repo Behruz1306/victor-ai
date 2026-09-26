@@ -1,0 +1,59 @@
+{
+  "_comment": "RAW DATA ONLY: messages fed by the Demo control 'Start live replay', one every 3-5 s, stamped with the current time.",
+  "messages": [
+    {
+      "key": "r1",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Need a reefer PU tomorrow 7am Dallas → Atlanta, can you cover? 40k lbs produce, 34F. Load 48244."
+    },
+    {
+      "key": "r2",
+      "channel": "apex-cust",
+      "from": "sarah",
+      "text": "Also, where is 48215 (Rockford → Nashville)? Need a check call for the shipper."
+    },
+    {
+      "key": "r3",
+      "channel": "apex-int",
+      "from": "timur",
+      "text": "Бахтиёр, нужен реф в Далласе завтра на 7:00 до Атланты, Apex 48244. Кто рядом?"
+    },
+    {
+      "key": "r4",
+      "channel": "fleet",
+      "from": "oybek",
+      "text": "48215: трак 131, сейчас Paducah, в Нэшвилле будет к 14:15, всё по плану."
+    },
+    {
+      "key": "r5",
+      "channel": "summit-bill",
+      "from": "karen",
+      "text": "Following up on invoice BR-2291 - still waiting on the corrected amount."
+    },
+    {
+      "key": "r6",
+      "channel": "glf-cust",
+      "from": "linda",
+      "text": "Driver on PO 7781 just checked in at the plant, thanks!"
+    },
+    {
+      "key": "r7",
+      "channel": "apex-cust",
+      "from": "mike",
+      "text": "Rate on the Dallas → Atlanta is $2,450 all-in."
+    },
+    {
+      "key": "r8",
+      "channel": "fleet",
+      "from": "bakhtiyor",
+      "text": "Под Даллас на завтра могу дать 214-й после Мемфиса, будет пустой к утру."
+    },
+    {
+      "key": "r9",
+      "channel": "summit-cust",
+      "from": "jake",
+      "text": "Can you move the S-5530 pickup from 10am to 1pm tomorrow? Shipper is delayed."
+    }
+  ]
+}
