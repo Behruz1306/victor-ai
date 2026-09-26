@@ -139,3 +139,25 @@ describe("ingestMessage", () => {
     expect(new Set(rows.map((r) => r.companyId))).toEqual(new Set([a, b]));
   });
 });
+
+describe("retention cleanup", () => {
+  beforeEach(resetDatabase);
+
+  it("deletes messages older than the company's retention window only", async () => {
+    const { retentionCleanup } = await import("@/lib/pipeline/retention");
+    const companyId = await company();
+    const msg = (id: number, daysAgo: number) =>
+      normalizeTelegramGroup({
+        message_id: id,
+        date: Math.floor((Date.now() - daysAgo * 86_400_000) / 1000),
+        chat: { id: -1, type: "group", title: "G" },
+        from: { id: 1, first_name: "A" },
+        text: `m${id}`,
+      })!;
+    await ingestMessage(db, companyId, msg(1, 120));
+    await ingestMessage(db, companyId, msg(2, 10));
+    expect(await retentionCleanup(db)).toBe(1);
+    const left = await db.select().from(messages);
+    expect(left.map((m) => m.text)).toEqual(["m2"]);
+  });
+});

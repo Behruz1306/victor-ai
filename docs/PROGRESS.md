@@ -64,10 +64,10 @@ Tick items as they are finished. Blockers go to the bottom section.
 ## Phase 7 — Onboarding, handoff, settings
 - [x] Owner watch-criteria onboarding (3 questions → structured criteria, editable)
 - [x] Handoff brief (pick replacement, per-channel brief, reassign on confirm, printable)
-- [ ] Settings: SLA, criteria, Telegram status, send mode, LLM provider, token usage + cost, retention, consent notice (+ post to group)
-- [ ] Retention cleanup job
-- [ ] Audit log viewer
-- [ ] Phase gate + commit
+- [x] Settings: SLA, criteria, Telegram status, send mode, LLM provider, token usage + cost, retention, consent notice (+ post to group)
+- [x] Retention cleanup job
+- [x] Audit log viewer
+- [x] Phase gate + commit
 
 ## Phase 8 — Demo control & polish
 - [ ] `/demo` control room (reset, load yesterday, live replay start/stop, queue status)

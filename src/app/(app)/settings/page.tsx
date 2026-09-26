@@ -1,15 +1,15 @@
 import { requirePage } from "@/lib/auth/guard";
-import { getLang } from "@/lib/i18n/server";
-import { t } from "@/lib/i18n";
-import { PageHeader, EmptyState } from "@/components/ui/primitives";
+import { can } from "@/lib/auth/rbac";
+import { SettingsView } from "./settings-view";
 
-export default async function Page() {
-  await requirePage("view:settings");
-  const lang = await getLang();
+export const metadata = { title: "Settings" };
+
+export default async function SettingsPage() {
+  const ctx = await requirePage("view:settings");
   return (
-    <div>
-      <PageHeader title={t(lang, "set.title")} />
-      <EmptyState title={t(lang, "common.loading")} />
-    </div>
+    <SettingsView
+      canEdit={can(ctx.role, "manage:settings")}
+      canAudit={can(ctx.role, "view:audit")}
+    />
   );
 }
