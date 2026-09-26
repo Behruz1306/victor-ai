@@ -62,7 +62,9 @@ export function LangToggle() {
 export function ThemeToggle() {
   const { t } = useT();
   const [dark, setDark] = React.useState(false);
-  React.useEffect(() => setDark(document.documentElement.classList.contains("dark")), []);
+  React.useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+  }, []);
   return (
     <Button
       variant="ghost"

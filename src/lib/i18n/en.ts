@@ -290,6 +290,7 @@ export const en = {
   "src.uploadDone": "Transcript imported: {n} lines",
   "src.none": "No channels yet. Add the bot to a Telegram group or load the demo.",
   "src.customerSide": "Customer",
+  "src.shared": "Shared across customers",
   "src.orNew": "or create new",
 
   // settings

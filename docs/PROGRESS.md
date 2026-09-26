@@ -20,24 +20,24 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Phase gate + commit
 
 ## Phase 2 — Ingestion
-- [ ] Normalizer contract + `ingestMessage()` (upsert channel/participant, injection screen, idempotent insert, debounced job)
-- [ ] Ported injection screen + outbound redaction (with tests)
-- [ ] Job queue (enqueue/claim/complete/fail, dedupe, backoff) + tests
-- [ ] Demo seed JSON (raw messages only) + `pnpm seed` / `pnpm seed:reset`
-- [ ] Worker: grammY long polling (groups), business messages behind flag
-- [ ] `/sources`: channels, raw messages, unmapped chat mapping with AI proposal
-- [ ] Phase gate + commit
+- [x] Normalizer contract + `ingestMessage()` (upsert channel/participant, injection screen, idempotent insert, debounced job)
+- [x] Ported injection screen + outbound redaction (with tests)
+- [x] Job queue (enqueue/claim/complete/fail, dedupe, backoff) + tests
+- [x] Demo seed JSON (raw messages only) + `pnpm seed` / `pnpm seed:reset`
+- [x] Worker: grammY long polling (groups), business messages behind flag
+- [x] `/sources`: channels, raw messages, unmapped chat mapping with AI proposal
+- [x] Phase gate + commit
 
 ## Phase 3 — Pipeline
-- [ ] LLM abstraction (anthropic / openai-compatible / mock), retries, repair, logging to analysis_runs
-- [ ] Prompts + `CustomerAnalysis` zod schema
-- [ ] Mock provider heuristics (EN/RU)
-- [ ] Task state machine (unit tests)
-- [ ] SLA engine (unit tests with fake clock) + signal dedupe/resolve + audience routing
-- [ ] Customer brief + daily summaries
-- [ ] Owner digest (≤5, ranked in code, worded by fast model)
-- [ ] Integration test: Apex scenario → six expected outcomes (mock)
-- [ ] Phase gate + commit
+- [x] LLM abstraction (anthropic / openai-compatible / mock), retries, repair, logging to analysis_runs
+- [x] Prompts + `CustomerAnalysis` zod schema
+- [x] Mock provider heuristics (EN/RU)
+- [x] Task state machine (unit tests)
+- [x] SLA engine (unit tests with fake clock) + signal dedupe/resolve + audience routing
+- [x] Customer brief + daily summaries
+- [x] Owner digest (≤5, ranked in code, worded by fast model)
+- [x] Integration test: Apex scenario → six expected outcomes (mock)
+- [x] Phase gate + commit
 
 ## Phase 4 — Dispatcher screen
 - [ ] Chat list grouped by customer, urgency sort, badges, unread
@@ -83,7 +83,7 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [ ] Final gate + commit + final report
 
 ## Stretch
-- [ ] Call transcript upload
+- [x] Call transcript upload
 - [ ] CSV export of tasks
 - [ ] Per-customer daily summaries view
 - [ ] Email IMAP connector

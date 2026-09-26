@@ -275,6 +275,7 @@ export const ru: Dict = {
   "src.uploadDone": "Расшифровка загружена: {n} строк",
   "src.none": "Каналов пока нет. Добавьте бота в группу Telegram или загрузите демо.",
   "src.customerSide": "Клиент",
+  "src.shared": "Общий для всех клиентов",
   "src.orNew": "или создать нового",
 
   "set.title": "Настройки",

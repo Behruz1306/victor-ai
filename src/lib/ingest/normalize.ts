@@ -25,7 +25,7 @@ export function detectLang(text: string): "ru" | "en" {
 
 /**
  * Who is speaking. Linked employees are always `employee`; otherwise unknown senders in a
- * customer chat are the customer, and in internal/fleet/billing/support chats they are staff.
+ * customer-facing chat are the customer, and in internal/fleet chats they are staff.
  */
 export function sideFor(opts: {
   linkedUser: boolean;
@@ -35,7 +35,10 @@ export function sideFor(opts: {
   if (opts.isBot) return "bot";
   if (opts.linkedUser) return "employee";
   if (!opts.chatType) return "unknown";
-  return opts.chatType === "customer" ? "customer" : "employee";
+  // Customer-facing chats (customer, billing, support) include the customer's people.
+  return opts.chatType === "customer" || opts.chatType === "billing" || opts.chatType === "support"
+    ? "customer"
+    : "employee";
 }
 
 // ── Telegram ────────────────────────────────────────────────────────────────
