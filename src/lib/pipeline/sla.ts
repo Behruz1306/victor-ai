@@ -24,6 +24,18 @@ export type SlaTask = {
   hasEtaNotForwarded: boolean;
 };
 
+export type SlaMessage = {
+  id: string;
+  side: string;
+  sentAt: Date;
+  text: string;
+  senderName: string;
+  /** Closing pleasantry ("Perfect, thank you!") that needs no reply. */
+  closing: boolean;
+  /** Tasks the message is about: analysis links + task events it proves + the task it created. */
+  taskIds: string[];
+};
+
 export type SlaChannel = {
   id: string;
   customerId: string;
@@ -31,16 +43,37 @@ export type SlaChannel = {
   chatType: ChatType;
   title: string;
   responsibleUserId: string | null;
-  lastMessage: {
-    id: string;
-    side: string;
-    sentAt: Date;
-    text: string;
-    createdTaskStatus: TaskStatus | null;
-    /** Closing pleasantry ("Perfect, thank you!") that needs no reply. */
-    closing: boolean;
-  } | null;
+  /** Recent messages, oldest first. */
+  recent: SlaMessage[];
 };
+
+/**
+ * Customer questions still waiting in one chat. A team message answers a question only when it
+ * is about the same task; questions without a task are answered by any reply; a reply without a
+ * task answers a linked question only when that is the only one open (single-topic chat).
+ * Questions whose tasks all closed were answered by the result itself.
+ */
+export function openCustomerQuestions(recent: SlaMessage[], openTaskIds: Set<string>): SlaMessage[] {
+  const open: SlaMessage[] = [];
+  for (const m of recent) {
+    if (m.side === "customer") {
+      if (!m.closing) open.push(m);
+      continue;
+    }
+    if (m.side !== "employee" && m.side !== "bot") continue;
+    const linkedOpen = open.filter((q) => q.taskIds.length > 0).length;
+    for (let i = open.length - 1; i >= 0; i--) {
+      const q = open[i]!;
+      const answered = !q.taskIds.length
+        ? true
+        : m.taskIds.length
+          ? q.taskIds.some((id) => m.taskIds.includes(id))
+          : linkedOpen === 1;
+      if (answered) open.splice(i, 1);
+    }
+  }
+  return open.filter((q) => !q.taskIds.length || q.taskIds.some((id) => openTaskIds.has(id)));
+}
 
 export type SlaCustomer = {
   id: string;
@@ -232,31 +265,54 @@ export function evaluateSla(input: SlaInput): { signals: DesiredSignal[]; patche
     }
   }
 
-  // 4. Customer chats where the customer spoke last and waits.
+  // 4. Customer questions still waiting for a reply about *their* task.
+  const taskById = new Map(input.tasks.map((t) => [t.id, t]));
+  const openTaskIds = new Set(input.tasks.filter((t) => OPEN.has(t.status)).map((t) => t.id));
   for (const c of input.channels) {
-    if (!["customer", "billing", "support"].includes(c.chatType) || !c.lastMessage) continue;
-    const lm = c.lastMessage;
-    if (lm.side !== "customer" || lm.closing) continue;
-    if (lm.createdTaskStatus === "received") continue; // covered by no_ack
-    const waited = elapsed(lm.sentAt);
-    if (waited <= sla.ackMinutes) continue;
-    const severity = Math.min(4, 3 + (waited > 240 ? 1 : 0));
-    signals.push({
-      dedupeKey: `reply_needed:${c.id}`,
-      kind: "reply_needed",
-      severity,
-      customerId: c.customerId,
-      channelId: c.id,
-      taskId: null,
-      responsibleUserId: c.responsibleUserId,
-      title: { en: `“${c.title}” is waiting for a reply`, ru: `«${c.title}» ждёт ответа` },
-      reason: {
-        en: `${c.customerName} wrote ${fmt(waited, "en")} ago and is still waiting for a reply.`,
-        ru: `${c.customerName} написал ${fmt(waited, "ru")} назад и всё ещё ждёт ответа.`,
-      },
-      evidenceQuote: clip(lm.text),
-      evidenceMessageId: lm.id,
-    });
+    if (!["customer", "billing", "support"].includes(c.chatType)) continue;
+    const groups = new Map<string, { taskId: string | null; first: SlaMessage }>();
+    for (const q of openCustomerQuestions(c.recent, openTaskIds)) {
+      const taskIds = q.taskIds.filter((id) => openTaskIds.has(id));
+      // A request nobody acknowledged yet is the no_ack signal's job.
+      if (taskIds.length && taskIds.every((id) => taskById.get(id)?.status === "received")) continue;
+      const taskId = taskIds.find((id) => taskById.get(id)?.status !== "received") ?? null;
+      const key = taskId ?? "";
+      if (!groups.has(key)) groups.set(key, { taskId, first: q });
+    }
+    for (const { taskId, first } of groups.values()) {
+      const waited = elapsed(first.sentAt);
+      if (waited <= sla.ackMinutes) continue;
+      const task = taskId ? taskById.get(taskId) : undefined;
+      const repliedOtherwise = c.recent.some(
+        (m) => (m.side === "employee" || m.side === "bot") && m.sentAt > first.sentAt,
+      );
+      const who = first.senderName || c.customerName;
+      const severity = Math.min(4, 3 + (waited > 240 ? 1 : 0));
+      signals.push({
+        dedupeKey: taskId ? `reply_needed:${c.id}:${taskId}` : `reply_needed:${c.id}`,
+        kind: "reply_needed",
+        severity,
+        customerId: c.customerId,
+        channelId: c.id,
+        taskId,
+        responsibleUserId: task?.responsibleUserId ?? c.responsibleUserId,
+        title: task
+          ? { en: `Waiting for a reply: ${task.title.en}`, ru: `Ждёт ответа: ${task.title.ru}` }
+          : { en: `“${c.title}” is waiting for a reply`, ru: `«${c.title}» ждёт ответа` },
+        reason:
+          task && repliedOtherwise
+            ? {
+                en: `${who} asked ${fmt(waited, "en")} ago; the team wrote in this chat since, but not about this.`,
+                ru: `${who} спросил ${fmt(waited, "ru")} назад; в чате с тех пор отвечали, но не об этом.`,
+              }
+            : {
+                en: `${who} wrote ${fmt(waited, "en")} ago and is still waiting for a reply.`,
+                ru: `${who} написал ${fmt(waited, "ru")} назад и всё ещё ждёт ответа.`,
+              },
+        evidenceQuote: clip(first.text),
+        evidenceMessageId: first.id,
+      });
+    }
   }
 
   // 5. Regular customer went quiet.

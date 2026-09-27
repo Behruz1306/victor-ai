@@ -399,6 +399,8 @@ export const analysisRuns = pgTable(
     outputTokens: integer("output_tokens").notNull().default(0),
     latencyMs: integer("latency_ms").notNull().default(0),
     ok: boolean("ok").notNull(),
+    /** Served from the demo response cache: no provider request was made. */
+    cached: boolean("cached").notNull().default(false),
     error: text("error"),
     createdAt: createdAt(),
   },
@@ -480,3 +482,67 @@ export const systemState = pgTable("system_state", {
   value: jsonb("value").$type<Record<string, unknown>>().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Shared token buckets per provider+model (global infra, no tenant data): web, worker and
+ * `pnpm eval` all draw from the same free-tier budget.
+ */
+export const llmLimits = pgTable("llm_limits", {
+  key: text("key").primaryKey(),
+  requestTokens: integer("request_tokens_milli").notNull(),
+  tokenTokens: integer("token_tokens").notNull(),
+  refilledAt: timestamp("refilled_at", { withTimezone: true }).notNull().defaultNow(),
+  day: date("day").notNull(),
+  dayCount: integer("day_count").notNull().default(0),
+  cooldownUntil: timestamp("cooldown_until", { withTimezone: true }),
+  lastStatus: integer("last_status"),
+  lastError: text("last_error"),
+  lastHeaders: jsonb("last_headers").$type<Record<string, string>>(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Demo response cache keyed by a hash of task + prompt (minus the clock line), so rehearsing
+ * the demo scenario costs no provider requests. Only demo companies read or write it.
+ */
+export const llmCache = pgTable("llm_cache", {
+  key: text("key").primaryKey(),
+  task: text("task").notNull(),
+  provider: text("provider").notNull(),
+  model: text("model").notNull(),
+  output: jsonb("output").$type<unknown>().notNull(),
+  hits: integer("hits").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Login attempts per ip|email in fixed windows (shared by every web instance). No tenant data. */
+export const loginAttempts = pgTable("login_attempts", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(0),
+  resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+});
+
+/**
+ * Which task a customer question or a team reply in a customer-facing chat is about. Written by
+ * the analysis (LLM or mock heuristics); task events add implicit links. The SLA engine uses them
+ * to keep a question open until a reply addresses *its* task.
+ */
+export const messageLinks = pgTable(
+  "message_links",
+  {
+    id: id(),
+    companyId: companyId(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    taskId: uuid("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("message_links_uq").on(t.messageId, t.taskId),
+    index("message_links_company_idx").on(t.companyId),
+    index("message_links_task_idx").on(t.taskId),
+  ],
+);

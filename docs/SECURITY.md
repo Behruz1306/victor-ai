@@ -70,7 +70,7 @@ This document states what we defend against, how, and what is explicitly out of 
 
 - **Model-level jailbreaks** that no pattern catches: the screen is a pattern list (defense in depth), not a guarantee. The design limits the blast radius instead (no tools, human approval).
 - **Encryption at rest** beyond what the database host provides; no field-level encryption of message text.
-- **Multi-instance rate limiting**: the login limiter is in-memory per web instance. Behind several replicas, move it to Postgres/Redis.
+- ~~Multi-instance rate limiting~~ — done: login attempts (5 / 10 min per IP+email) are counted in Postgres (`login_attempts`), shared by every web replica and surviving restarts.
 - **SSO / 2FA**, password reset flows, per-user API tokens.
 - **Row-level security in Postgres**: isolation is enforced in the application layer (tested), not by RLS policies.
 - **Content-Security-Policy without `'unsafe-inline'`**: Next.js hydration needs inline scripts; a nonce-based CSP is a follow-up.

@@ -25,7 +25,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env src/lib/db/migrate.ts",
     "seed": "tsx --env-file-if-exists=.env seed/seed.ts",
-    "seed:reset": "tsx --env-file-if-exists=.env seed/seed.ts --reset"
+    "seed:reset": "tsx --env-file-if-exists=.env seed/seed.ts --reset",
+    "eval": "tsx --env-file-if-exists=.env scripts/eval.ts",
+    "llm:models": "tsx --env-file-if-exists=.env scripts/list-models.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.63",

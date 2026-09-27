@@ -35,7 +35,7 @@ export default async function DispatcherPage({
       initialChannel={sp.ch && uuid.test(sp.ch) ? sp.ch : null}
       dispatchers={dispatchers}
       canViewOthers={ctx.role !== "dispatcher"}
-      provider={providerInfo().provider}
+      provider={(await providerInfo()).provider}
     />
   );
 }

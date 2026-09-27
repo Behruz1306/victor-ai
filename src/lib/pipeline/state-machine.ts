@@ -40,6 +40,28 @@ export function parseDeadlineIso(value: string | null): Date | null {
 }
 
 /**
+ * Timeline stamps omit the year, so a model may put a promise in the wrong year. A promise is
+ * about the near future of the message that made it: when the deadline lands far from its
+ * evidence but the same calendar date in the evidence's year (or the next) is plausible, use it.
+ */
+export function repairDeadlineYear(value: string | null, evidenceAt: Date): string | null {
+  const d = parseDeadlineIso(value);
+  if (!d) return value;
+  const plausible = (x: Date) => {
+    const days = (x.getTime() - evidenceAt.getTime()) / 86_400_000;
+    return days > -2 && days < 120;
+  };
+  if (plausible(d)) return value;
+  const base = evidenceAt.getUTCFullYear();
+  for (const year of [base, base + 1]) {
+    const fixed = new Date(d);
+    fixed.setUTCFullYear(year);
+    if (plausible(fixed)) return fixed.toISOString();
+  }
+  return value;
+}
+
+/**
  * The only way a task changes status. Forward-only along PATH (skipping is allowed when one
  * message proves several steps), plus `cancelled` from any open state. Evidence is mandatory;
  * `deadline_set` requires a parseable deadline, otherwise the move is downgraded to

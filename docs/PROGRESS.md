@@ -102,19 +102,19 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Re-seed demo company, phase gate, commit `polish R`
 
 ## Phase A — Real AI and live Telegram
-- [ ] A1 provider chain Cerebras → Gemini → mock, `/models` listing in EVAL.md, failover, token buckets, demo cache, JSON-mode repair, Settings usage per provider
-- [ ] A2 `pnpm eval` harness + model choice + up to 3 improvement rounds → docs/EVAL.md
-- [ ] A3 structured-output robustness + recorded real fixture unit test
-- [ ] A4 live Telegram: poller lock, getMe/getUpdates health, "Bot online · last update Xs ago", Update-JSON integration test
-- [ ] A5 mock: 30+ new EN/RU trucking phrasings + tests
+- [x] A1 provider chain Cerebras → Gemini → mock, `/models` listing in EVAL.md, failover, token buckets, demo cache, JSON-mode repair, Settings usage per provider (⚠️ Cerebras key is a placeholder)
+- [x] A2 `pnpm eval` harness + model choice + up to 3 improvement rounds → docs/EVAL.md
+- [x] A3 structured-output robustness + recorded real fixture unit test
+- [x] A4 live Telegram: poller lock, getMe/getUpdates health, "Bot online · last update Xs ago", Update-JSON integration test (⚠️ TELEGRAM_BOT_TOKEN in .env is a placeholder — the live check is for the human)
+- [x] A5 mock: 30+ new EN/RU trucking phrasings + tests
 - [ ] Phase gate + commit
 
 ## Phase B — Known issues
-- [ ] B1 reply_needed per open customer question (task-level) + tests
+- [x] B1 reply_needed per open customer question (task-level) + tests
 - [ ] B2 demo-aware KPI window
 - [ ] B3 worker re-seeds stale demo (>12 h) on start
 - [ ] B4 CSP nonces (no 'unsafe-inline' for scripts) + Playwright console check
-- [ ] B5 login rate limit in Postgres
+- [x] B5 login rate limit in Postgres
 - [ ] B6 `.env.example` alongside `env.example`
 - [ ] Phase gate + commit
 

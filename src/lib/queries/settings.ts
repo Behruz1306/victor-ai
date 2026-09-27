@@ -4,6 +4,10 @@ import { auditLog, companies, systemState, users } from "@/lib/db/schema";
 import { providerInfo } from "@/lib/llm";
 import { estimateCostUsd } from "@/lib/llm/pricing";
 import { env } from "@/lib/env";
+import { llmOverview } from "./llm-status";
+
+/** Providers used on their free tier in this deployment: no spend. */
+const FREE_TIER = new Set(["cerebras", "gemini", "mock"]);
 
 export async function llmUsage(db: Db, companyId: string, days = 30) {
   const rows = await db.execute<{
@@ -31,7 +35,7 @@ export async function llmUsage(db: Db, companyId: string, days = 30) {
     inputTokens: Number(r.input),
     outputTokens: Number(r.output),
     avgLatencyMs: Number(r.latency),
-    costUsd: estimateCostUsd(r.model, Number(r.input), Number(r.output)),
+    costUsd: FREE_TIER.has(r.provider) ? 0 : estimateCostUsd(r.model, Number(r.input), Number(r.output)),
   }));
   return {
     items,
@@ -51,14 +55,29 @@ export async function systemStatus(db: Db) {
   const get = (k: string) => rows.find((r) => r.key === k);
   const hb = get("worker_heartbeat");
   const bot = get("telegram_bot");
+  const v = bot?.value ?? {};
+  const lastPollAt = typeof v.lastPollAt === "string" ? v.lastPollAt : null;
+  const lastUpdateAt = typeof v.lastUpdateAt === "string" ? v.lastUpdateAt : null;
+  const workerAlive = hb ? Date.now() - hb.updatedAt.getTime() < 90_000 : false;
   return {
     workerLastSeen: hb?.updatedAt ?? null,
-    workerAlive: hb ? Date.now() - hb.updatedAt.getTime() < 90_000 : false,
+    workerAlive,
     telegram: {
-      configured: Boolean(bot?.value?.configured),
-      username: (bot?.value?.username as string | undefined) ?? null,
-      canReadAllGroupMessages: Boolean(bot?.value?.canReadAllGroupMessages),
+      configured: Boolean(v.configured),
+      /** TELEGRAM_BOT_TOKEN is set but is not a BotFather token. */
+      placeholder: Boolean(v.placeholder),
+      username: (v.username as string | undefined) ?? null,
+      canReadAllGroupMessages: Boolean(v.canReadAllGroupMessages),
       businessEnabled: env().telegram.businessEnabled,
+      /** A getUpdates round-trip succeeded within the last 90 s (long-poll timeout is 30 s). */
+      online:
+        Boolean(v.configured) &&
+        workerAlive &&
+        lastPollAt !== null &&
+        Date.now() - new Date(lastPollAt).getTime() < 90_000,
+      lastPollAt,
+      lastUpdateAt,
+      lastError: (v.lastError as string | null | undefined) ?? null,
     },
   };
 }
@@ -71,7 +90,8 @@ export async function settingsData(db: Db, companyId: string) {
     sla: company.sla,
     settings: company.settings,
     criteria: company.watchCriteria.items,
-    llm: providerInfo(),
+    llm: await providerInfo(),
+    ai: await llmOverview(db, companyId),
     usage: await llmUsage(db, companyId),
     system: await systemStatus(db),
     envSendMode: env().sendMode,

@@ -15,6 +15,27 @@
       "when": 1790433018463,
       "tag": "0001_system_state",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790490659746,
+      "tag": "0002_llm_limits_cache",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790492277423,
+      "tag": "0003_login_attempts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790492492248,
+      "tag": "0004_message_links",
+      "breakpoints": true
     }
   ]
 }

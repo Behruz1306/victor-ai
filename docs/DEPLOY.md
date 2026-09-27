@@ -21,9 +21,12 @@ Copy the template and fill it in: `cp env.example .env`. Every variable is docum
 | `DATABASE_URL`                                | yes (PaaS)    | compose sets it automatically for the bundled `db`                                                                                  |
 | `SESSION_SECRET`                              | yes in prod   | 32+ random chars: `openssl rand -hex 32`. If missing, the web container generates a random one at start (sessions reset on restart) |
 | `APP_URL`                                     | yes           | public URL; `https://…` makes session cookies `Secure`                                                                              |
-| `ANTHROPIC_API_KEY`                           | no            | enables real AI (`claude-sonnet-5` main, `claude-haiku-4-5-20251001` fast). Empty = mock provider                                   |
-| `LLM_BASE_URL` + `LLM_API_KEY`                | no            | OpenAI-compatible endpoint (e.g. OpenRouter) instead of Anthropic                                                                   |
-| `LLM_MODEL`, `LLM_FAST_MODEL`, `LLM_PROVIDER` | no            | override models / force `mock`                                                                                                      |
+| `LLM_BASE_URL` + `LLM_API_KEY`                | no            | primary provider, Cerebras (`https://api.cerebras.ai/v1`), free tier                                                                |
+| `LLM_MODEL`, `LLM_FAST_MODEL`                 | no            | Cerebras models (comma-separated failover list allowed); defaults `gpt-oss-120b` / `llama3.1-8b`                                    |
+| `GEMINI_API_KEY`                              | no            | fallback provider, Google Gemini free tier (OpenAI-compatible endpoint)                                                             |
+| `GEMINI_MODEL`, `GEMINI_FAST_MODEL`           | no            | Gemini failover lists chosen by `pnpm eval` (see docs/EVAL.md)                                                                      |
+| `ANTHROPIC_API_KEY` (+ `ANTHROPIC_MODEL`…)    | no            | optional; joins the chain first when set                                                                                            |
+| `LLM_PROVIDER`                                | no            | `mock` forces the offline mock. No keys at all = mock                                                                               |
 | `TELEGRAM_BOT_TOKEN`                          | for live mode | from @BotFather, see below                                                                                                          |
 | `TELEGRAM_COMPANY_ID`                         | no            | company the bot belongs to; default = first company                                                                                 |
 | `TELEGRAM_BUSINESS_ENABLED`                   | no            | ingest Telegram Business 1:1 chats                                                                                                  |
@@ -45,7 +48,7 @@ cp env.example .env
 sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -hex 32)|" .env
 sed -i "s|^APP_URL=.*|APP_URL=https://victor.example.com|" .env
 echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
-nano .env        # ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN, DEMO_MODE=false for production
+nano .env        # LLM_API_KEY (Cerebras), GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, DEMO_MODE=false for production
 
 # 3. Start (migrations run automatically in the worker container)
 docker compose up -d --build
@@ -83,11 +86,12 @@ Create **one Postgres** and **two services from the same repository / Dockerfile
 | `victor-web`    | _(default)_ `./web-entrypoint.sh` | 3001 (HTTP)              | `GET /api/health` |
 
 Set on **both** services: `DATABASE_URL` (from the provider's Postgres), `SESSION_SECRET`,
-`APP_URL`, `ANTHROPIC_API_KEY` (optional), `TELEGRAM_BOT_TOKEN` (optional), `DEMO_MODE`.
+`APP_URL`, `LLM_API_KEY` / `GEMINI_API_KEY` (optional), `TELEGRAM_BOT_TOKEN` (optional), `DEMO_MODE`.
 
 Order: deploy **worker first** (it applies migrations and seeds the demo DB), then web.
-Run **exactly one** worker instance — Telegram long polling allows a single consumer per bot token.
-Web can scale horizontally (the login rate limiter is per instance, see SECURITY.md).
+Extra worker instances are safe: a Postgres advisory lock lets exactly one of them long-poll
+Telegram (one consumer per bot token); the others process jobs and stand by. Web can scale
+horizontally (the login rate limiter and the LLM rate limiter live in Postgres).
 
 If the platform can pick a Docker build target, you can use `--target web` / `--target worker`
 instead (smaller images, same commands as in compose).
@@ -96,7 +100,7 @@ instead (smaller images, same commands as in compose).
 
 ```bash
 cd victor-ai
-cp env.example .env                      # leave ANTHROPIC_API_KEY empty → mock provider, no internet needed
+cp env.example .env                      # leave the API keys empty → mock provider, no internet needed
 docker compose up -d db                  # Postgres on localhost:5433
 pnpm install
 pnpm db:migrate

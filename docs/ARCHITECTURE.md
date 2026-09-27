@@ -81,6 +81,16 @@ Every table except `companies` has `company_id`; every query helper takes the se
 
 ## LLM providers
 
-`src/lib/llm/index.ts` picks: `anthropic` if `ANTHROPIC_API_KEY`; `openai-compatible` if
-`LLM_BASE_URL` + `LLM_API_KEY`; otherwise `mock` (deterministic EN/RU heuristics). Retries with
-backoff, one repair attempt on schema failure, every call logged in `analysis_runs`.
+`src/lib/llm/` is the only door to models. `providers.ts` builds the chain from env: **Anthropic**
+(only with `ANTHROPIC_API_KEY`) → **Cerebras** (`LLM_BASE_URL` + `LLM_API_KEY`) → **Google Gemini**
+(`GEMINI_API_KEY`, OpenAI-compatible endpoint) → **mock** (deterministic EN/RU heuristics). Every
+model variable accepts a failover list. A runtime switch in the demo room (`system_state.llm_mode`)
+sends everything to the mock without a restart.
+
+Per call (`index.ts`): demo cache lookup → for each provider and model: shared token bucket in
+Postgres (`ratelimit.ts`) → `generateText` with strict `json_schema` (or `json_object` + schema in
+the instructions if the model rejects it) → lenient JSON parse + zod → one repair attempt with the
+validation error → on 429 / 5xx / timeout / invalid output: spaced retries, then the next model or
+provider → every attempt logged in `analysis_runs` (`cached` marks cache hits). `pnpm eval`
+(`scripts/eval.ts`) runs the Apex scenario through any model with the chain pinned
+(`withLlmOverride`), see `docs/EVAL.md`.

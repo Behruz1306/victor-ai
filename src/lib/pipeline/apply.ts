@@ -4,6 +4,7 @@ import type { Db } from "@/lib/db/client";
 import {
   customers,
   dailySummaries,
+  messageLinks,
   playbookRules,
   suggestions,
   taskEvents,
@@ -15,7 +16,7 @@ import { redactOutbound } from "@/lib/security/redact";
 import { localDay } from "@/lib/time";
 import type { L10n } from "@/lib/types";
 import type { AnalysisContext } from "./context";
-import { planTransition } from "./state-machine";
+import { planTransition, repairDeadlineYear } from "./state-machine";
 import { routeAudience } from "./audience";
 import { upsertSignal } from "./signals-store";
 import { isEtaInfo } from "@/lib/heuristics/extract";
@@ -109,7 +110,7 @@ export async function applyAnalysis(
           current: null,
           proposed: u.proposed_status,
           evidenceExists: true,
-          deadline: u.deadline_at,
+          deadline: repairDeadlineYear(u.deadline_at, ev.sentAt),
         });
         if (!plan.ok) {
           summary.rejected.push({ ref: u.new_task.temp_id, reason: plan.reason });
@@ -172,7 +173,7 @@ export async function applyAnalysis(
       current,
       proposed: u.proposed_status,
       evidenceExists: Boolean(ev),
-      deadline: u.deadline_at,
+      deadline: ev ? repairDeadlineYear(u.deadline_at, ev.sentAt) : u.deadline_at,
     });
     if (!plan.ok) {
       if (plan.reason !== "not_forward")
@@ -209,6 +210,19 @@ export async function applyAnalysis(
       })
       .where(eq(tasks.id, task.id));
     summary.transitions += plan.steps.length;
+  }
+
+  // 1b. Message → task links in customer-facing chats (keeps questions open per task).
+  const links = out.message_links
+    .map((l) => ({ msg: maps.message.get(l.message_id), taskId: resolveTask(l.task_ref) }))
+    .filter((l): l is { msg: NonNullable<typeof l.msg>; taskId: string } =>
+      Boolean(l.msg && l.taskId && CUSTOMER_FACING.has(l.msg.chatType)),
+    );
+  if (links.length) {
+    await db
+      .insert(messageLinks)
+      .values(links.map((l) => ({ companyId, messageId: l.msg.dbId, taskId: l.taskId })))
+      .onConflictDoNothing();
   }
 
   // 2. Quality flags → signals.

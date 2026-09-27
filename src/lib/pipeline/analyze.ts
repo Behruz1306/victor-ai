@@ -24,6 +24,8 @@ export async function analyzeCustomer(
       mockInput: ctx.input,
       log: { db, companyId, customerId },
       maxOutputTokens: 12000,
+      // Rehearsing the demo replays identical prompts: serve them from the response cache.
+      cache: ctx.company.isDemo,
     },
   );
   if (!out) return null;

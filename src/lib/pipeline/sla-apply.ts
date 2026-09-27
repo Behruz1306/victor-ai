@@ -4,6 +4,7 @@ import {
   channels,
   companies,
   customers,
+  messageLinks,
   messages,
   participants,
   signals,
@@ -18,6 +19,8 @@ import { upsertSignal } from "./signals-store";
 import { isClosingRemark } from "@/lib/heuristics/extract";
 
 const AI_QUALITY_TTL_HOURS = 72;
+/** Enough history to see every open question of a busy day in one chat. */
+const RECENT_PER_CHAT = 60;
 
 export async function runSla(
   db: Db,
@@ -98,16 +101,38 @@ export async function runSla(
   const slaChannels: SlaChannel[] = [];
   for (const c of chanRows) {
     if (!["customer", "billing", "support"].includes(c.chatType!)) continue;
-    const [last] = await db
-      .select({ m: messages, side: participants.side })
+    const rows = await db
+      .select({ m: messages, side: participants.side, name: participants.displayName })
       .from(messages)
       .leftJoin(participants, eq(participants.id, messages.participantId))
       .where(eq(messages.channelId, c.id))
       .orderBy(desc(messages.sentAt))
-      .limit(1);
-    const createdTask = last
-      ? openTasks.find((t) => t.createdFromMessageId === last.m.id)
-      : undefined;
+      .limit(RECENT_PER_CHAT);
+    rows.reverse();
+    const msgIds = rows.map((r) => r.m.id);
+    // What each message is about: analysis links, task events it proved, the task it created.
+    const about = new Map<string, Set<string>>();
+    const link = (messageId: string | null, taskId: string) => {
+      if (!messageId) return;
+      if (!about.has(messageId)) about.set(messageId, new Set());
+      about.get(messageId)!.add(taskId);
+    };
+    if (msgIds.length) {
+      const [ml, te, created] = await Promise.all([
+        db.select().from(messageLinks).where(inArray(messageLinks.messageId, msgIds)),
+        db
+          .select({ m: taskEvents.evidenceMessageId, t: taskEvents.taskId })
+          .from(taskEvents)
+          .where(inArray(taskEvents.evidenceMessageId, msgIds)),
+        db
+          .select({ m: tasks.createdFromMessageId, t: tasks.id })
+          .from(tasks)
+          .where(inArray(tasks.createdFromMessageId, msgIds)),
+      ]);
+      for (const r of ml) link(r.messageId, r.taskId);
+      for (const r of te) link(r.m, r.t);
+      for (const r of created) link(r.m, r.t);
+    }
     const cust = custById.get(c.customerId!);
     slaChannels.push({
       id: c.id,
@@ -116,16 +141,15 @@ export async function runSla(
       chatType: c.chatType!,
       title: c.title,
       responsibleUserId: cust?.assignedUserId ?? null,
-      lastMessage: last
-        ? {
-            id: last.m.id,
-            side: last.side ?? "unknown",
-            sentAt: last.m.sentAt,
-            text: last.m.text,
-            createdTaskStatus: createdTask?.status ?? null,
-            closing: isClosingRemark(last.m.text),
-          }
-        : null,
+      recent: rows.map((r) => ({
+        id: r.m.id,
+        side: r.side ?? "unknown",
+        sentAt: r.m.sentAt,
+        text: r.m.text,
+        senderName: r.name ?? "",
+        closing: isClosingRemark(r.m.text),
+        taskIds: [...(about.get(r.m.id) ?? [])],
+      })),
     });
   }
 

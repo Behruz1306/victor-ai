@@ -17,6 +17,7 @@ import {
   extractTimes,
   extractTrucks,
   firstName,
+  isClosingRemark,
   isEtaInfo,
   isInternalWork,
   isRude,
@@ -327,6 +328,8 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
   }
 
   const sorted = [...input.messages].sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+  // Which task each customer question / team reply in a customer-facing chat is about.
+  const links: { message_id: string; task_ref: string }[] = [];
   for (const m of sorted) {
     const ch = channelById.get(m.channelId);
     if (!ch) continue;
@@ -394,6 +397,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
           price: null,
         };
         tasks.push(t);
+        links.push({ message_id: m.id, task_ref: t.id });
         updates.push({
           task_ref: null,
           new_task: { temp_id: t.id, title: t.title, kind: t.kind, ref },
@@ -408,6 +412,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
       } else {
         const target = existing ? [existing] : about;
         for (const t of target) {
+          if (!isClosingRemark(m.text)) links.push({ message_id: m.id, task_ref: t.id });
           t.lastCustomerAt = m.sentAt;
           t.lastCustomerMsgId = m.id;
           t.contact = firstName(m.senderName);
@@ -457,6 +462,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
         }
       }
       for (const t of targets) {
+        links.push({ message_id: m.id, task_ref: t.id });
         t.lastEmployeeToCustomerAt = m.sentAt;
         if (deliversResult(t.kind, m.text, m.sentAt, tz) && !claimsNoInfo(m.text)) {
           advance(t, "delivered", m, {
@@ -548,6 +554,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
   const suggestions = buildSuggestions(input, tasks, lastComplaint);
   return {
     task_updates: updates,
+    message_links: links,
     quality_flags: flags,
     suggestions,
     brief_update: buildBrief(input, tasks, flags),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { businessMinutes, evaluateSla, type SlaChannel, type SlaTask } from "@/lib/pipeline/sla";
+import { businessMinutes, evaluateSla, openCustomerQuestions, type SlaChannel, type SlaMessage, type SlaTask } from "@/lib/pipeline/sla";
 import { DEFAULT_SLA } from "@/lib/types";
 import { routeAudience } from "@/lib/pipeline/audience";
 import { rankForOwner } from "@/lib/pipeline/digest";
@@ -65,28 +65,99 @@ describe("SLA engine (fake clock)", () => {
   });
 
   it("reply_needed skips closing pleasantries and requests already covered by no_ack", () => {
-    const ch = (
-      text: string,
-      createdTaskStatus: SlaChannel["lastMessage"] extends infer L
-        ? L extends { createdTaskStatus: infer S }
-          ? S
-          : never
-        : never = null,
-      closing = false,
-    ): SlaChannel => ({
+    const msg = (text: string, closing = false, taskIds: string[] = []): SlaMessage => ({
+      id: "m9",
+      side: "customer",
+      sentAt: T0,
+      text,
+      senderName: "Mike",
+      closing,
+      taskIds,
+    });
+    const ch = (recent: SlaMessage[]): SlaChannel => ({
       id: "ch1",
       customerId: "c1",
       customerName: "Apex",
       chatType: "customer",
       title: "Apex",
       responsibleUserId: "u1",
-      lastMessage: { id: "m9", side: "customer", sentAt: T0, text, createdTaskStatus, closing },
+      recent,
     });
-    expect(run(min(30), [], [ch("any news on 48230?")]).signals.map((s) => s.kind)).toEqual([
+    expect(run(min(30), [], [ch([msg("any news on 48230?")])]).signals.map((s) => s.kind)).toEqual([
       "reply_needed",
     ]);
-    expect(run(min(30), [], [ch("Perfect, thank you!", null, true)]).signals).toHaveLength(0);
-    expect(run(min(30), [], [ch("Need a reefer", "received")]).signals).toHaveLength(0);
+    expect(run(min(30), [], [ch([msg("Perfect, thank you!", true)])]).signals).toHaveLength(0);
+    // The request created a task nobody acknowledged: no_ack says it, not reply_needed.
+    const t = task({ id: "t9", status: "received" });
+    expect(run(min(30), [t], [ch([msg("Need a reefer", false, ["t9"])])]).signals.map((s) => s.kind)).toEqual([
+      "no_ack",
+    ]);
+  });
+
+  describe("reply_needed is tracked per task, not per chat", () => {
+    const at = (m: number) => new Date(T0.getTime() + m * 60_000);
+    const m = (id: string, side: string, minute: number, text: string, taskIds: string[] = []): SlaMessage => ({
+      id,
+      side,
+      sentAt: at(minute),
+      text,
+      senderName: side === "customer" ? "Mike" : "Timur",
+      closing: false,
+      taskIds,
+    });
+    const chat = (recent: SlaMessage[]): SlaChannel => ({
+      id: "ch1",
+      customerId: "c1",
+      customerName: "Apex",
+      chatType: "customer",
+      title: "Apex ↔ Blue Ridge",
+      responsibleUserId: "u1",
+      recent,
+    });
+    const tA = task({ id: "tA", status: "acknowledged", ackAt: at(0), title: { en: "Reefer 48230", ru: "Реф 48230" } });
+    const tB = task({ id: "tB", status: "in_progress", title: { en: "POD 48190", ru: "POD 48190" } });
+
+    it("a reply about another task does not clear the earlier question", () => {
+      const recent = [
+        m("q1", "customer", 0, "Any news on the reefer 48230?", ["tA"]),
+        m("q2", "customer", 5, "Also need the POD for 48190", ["tB"]),
+        m("r1", "employee", 10, "POD for 48190 coming in 20 min", ["tB"]),
+      ];
+      const r = evaluateSla({ now: at(45), timezone: tz, sla: DEFAULT_SLA, tasks: [tA, tB], channels: [chat(recent)], customers: [] });
+      const reply = r.signals.filter((s) => s.kind === "reply_needed");
+      expect(reply).toHaveLength(1);
+      expect(reply[0]).toMatchObject({ taskId: "tA", evidenceMessageId: "q1", dedupeKey: "reply_needed:ch1:tA" });
+      expect(reply[0]!.reason.en).toMatch(/not about this/);
+    });
+
+    it("a reply about that task clears it; so does closing the task", () => {
+      const answered = [
+        m("q1", "customer", 0, "Any news on the reefer 48230?", ["tA"]),
+        m("r1", "employee", 10, "Mike, truck 214 confirmed for 48230", ["tA"]),
+      ];
+      expect(
+        evaluateSla({ now: at(45), timezone: tz, sla: DEFAULT_SLA, tasks: [tA], channels: [chat(answered)], customers: [] })
+          .signals.filter((s) => s.kind === "reply_needed"),
+      ).toHaveLength(0);
+      const closed = [m("q1", "customer", 0, "Any news on 48230?", ["tA"])];
+      expect(
+        evaluateSla({ now: at(45), timezone: tz, sla: DEFAULT_SLA, tasks: [], channels: [chat(closed)], customers: [] })
+          .signals,
+      ).toHaveLength(0);
+    });
+
+    it("heuristic fallback: an unlinked reply answers the only open question, not one of several", () => {
+      const single = [m("q1", "customer", 0, "Any news on 48230?", ["tA"]), m("r1", "employee", 5, "Checking now")];
+      expect(openCustomerQuestions(single, new Set(["tA"]))).toHaveLength(0);
+      const two = [
+        m("q1", "customer", 0, "Any news on 48230?", ["tA"]),
+        m("q2", "customer", 1, "And the POD for 48190?", ["tB"]),
+        m("r1", "employee", 5, "Checking now"),
+      ];
+      expect(openCustomerQuestions(two, new Set(["tA", "tB"])).map((q) => q.id)).toEqual(["q1", "q2"]);
+      const unlinked = [m("q1", "customer", 0, "Hello? Anyone?"), m("r1", "employee", 5, "Here, sorry")];
+      expect(openCustomerQuestions(unlinked, new Set())).toHaveLength(0);
+    });
   });
 
   it("business hours: only minutes inside the window count", () => {

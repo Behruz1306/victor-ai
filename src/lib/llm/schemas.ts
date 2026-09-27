@@ -61,8 +61,15 @@ export const SuggestionOut = z.object({
   used_rule_ids: z.array(z.string()),
 });
 
+export const MessageLink = z.object({
+  message_id: z.string().describe("Customer question/follow-up or team reply in a customer-facing chat (m…)"),
+  task_ref: z.string().describe('The task it is about: existing "t…" or new "n…"'),
+});
+
 export const CustomerAnalysis = z.object({
   task_updates: z.array(TaskUpdate),
+  // Required in the JSON Schema sent to models; answers from before the field existed still parse.
+  message_links: z.array(MessageLink).default([]),
   quality_flags: z.array(QualityFlag),
   suggestions: z.array(SuggestionOut),
   brief_update: z.string().describe("Rolling customer brief, max 1200 characters, English"),

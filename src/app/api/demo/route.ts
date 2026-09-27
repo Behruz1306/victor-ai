@@ -30,7 +30,7 @@ export const GET = handle(async (req) => {
   return NextResponse.json({
     ...(await demoStatus(db, ctx.companyId)),
     system: await systemStatus(db),
-    llm: providerInfo(),
+    llm: await providerInfo(),
   });
 });
 

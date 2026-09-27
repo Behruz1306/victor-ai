@@ -192,9 +192,30 @@ function SystemCard({ data }: { data: Data }) {
           {tg.configured ? (
             <strong>@{tg.username}</strong>
           ) : (
-            <span className="text-muted-foreground">{t("set.botNotConfigured")}</span>
+            <span className="text-muted-foreground">
+              {tg.placeholder ? t("set.botPlaceholder") : t("set.botNotConfigured")}
+            </span>
           )}
         </Row>
+        {tg.configured ? (
+          <p data-testid="bot-status" className="flex items-center gap-1.5 text-xs">
+            <span
+              aria-hidden
+              className={`size-2 rounded-full ${tg.online ? "bg-ok" : "bg-sev-4"}`}
+            />
+            <span className={tg.online ? "text-ok" : "text-sev-4"}>
+              {tg.online ? t("set.botOnline") : t("set.botOffline")}
+            </span>
+            <span className="text-muted-foreground">
+              ·{" "}
+              {tg.lastUpdateAt ? (
+                t("set.botLastUpdate", { t: agoShort(tg.lastUpdateAt) })
+              ) : (
+                t("set.botNoUpdates")
+              )}
+            </span>
+          </p>
+        ) : null}
         {tg.configured ? (
           <Row label={t("set.canRead")}>
             {tg.canReadAllGroupMessages ? (
@@ -228,6 +249,13 @@ function SystemCard({ data }: { data: Data }) {
       </CardContent>
     </Card>
   );
+}
+
+function agoShort(iso: string): string {
+  const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 90) return `${s}s ago`;
+  if (s < 5400) return `${Math.round(s / 60)}m ago`;
+  return `${Math.round(s / 3600)}h ago`;
 }
 
 function SendCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
@@ -328,15 +356,65 @@ function UsageCard({ data }: { data: Data }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-1.5">
-          <Cpu className="size-4" /> {t("set.llm")}: {data.llm.provider}
+          <Cpu className="size-4" /> {t("set.llm")}
         </CardTitle>
-        {data.llm.provider === "mock" ? (
+        {data.ai.mode === "offline" ? (
+          <p className="text-xs text-sev-3">{t("set.aiOffline")}</p>
+        ) : data.ai.active.id === "mock" ? (
           <p className="text-xs text-muted-foreground">{t("set.llmMock")}</p>
         ) : null}
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm">
-        <Row label={t("set.model")}>{data.llm.model}</Row>
-        <Row label={t("set.fastModel")}>{data.llm.fastModel}</Row>
+        <Row label={t("set.aiActive")}>
+          <span data-testid="ai-active">
+            <strong>{data.ai.active.label}</strong>{" "}
+            <span className="font-mono text-xs text-muted-foreground">{data.ai.active.model}</span>
+          </span>
+        </Row>
+        <div className="text-xs font-medium text-muted-foreground">{t("set.aiChain")}</div>
+        <ol className="flex flex-col gap-1" data-testid="ai-chain">
+          {data.ai.providers.map((p, i) => (
+            <li key={p.id} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-xs">
+              <span className="flex min-w-0 items-center gap-1.5">
+                <span className="font-mono text-muted-foreground">{i + 1}.</span>
+                <strong>{p.label}</strong>
+                <span className="truncate font-mono text-muted-foreground">
+                  {p.models.join(", ")}
+                  {p.fastModels[0] !== p.models[0] ? ` · fast ${p.fastModels.join(", ")}` : ""}
+                </span>
+              </span>
+              <span className="flex shrink-0 items-center gap-2 tabular-nums">
+                {p.kind !== "mock" ? (
+                  <span title={t("set.aiFreeTier")}>
+                    {t("set.aiRequestsToday")}: {p.requestsToday}
+                    {p.dailyLimit ? `/${p.dailyLimit}` : ""}
+                  </span>
+                ) : null}
+                <Badge tone={p.state === "ready" ? "ok" : "sev3"}>
+                  {t(`set.aiState.${p.state}` as TKey)}
+                  {p.state === "cooling_down" && p.cooldownUntil
+                    ? ` · ${t("set.aiUntil", { t: new Date(p.cooldownUntil).toLocaleTimeString() })}`
+                    : ""}
+                </Badge>
+              </span>
+            </li>
+          ))}
+        </ol>
+        {data.ai.cachedHits24h ? (
+          <p className="text-[11px] text-muted-foreground">
+            {t("set.aiCached", { n: data.ai.cachedHits24h })}
+          </p>
+        ) : null}
+        {data.ai.warnings.length ? (
+          <ul className="flex flex-col gap-1 rounded-md bg-sev-3-soft px-2.5 py-1.5 text-xs text-sev-3">
+            {data.ai.warnings.map((w) => (
+              <li key={w}>
+                <AlertTriangle className="mr-1 inline size-3" />
+                {w}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <div className="mt-1 grid grid-cols-4 gap-2 rounded-md bg-muted/50 p-2 text-center">
           <Stat label={t("set.calls")} value={fmt(u.totals.calls)} />
           <Stat label={t("set.tokensIn")} value={fmt(u.totals.inputTokens)} />

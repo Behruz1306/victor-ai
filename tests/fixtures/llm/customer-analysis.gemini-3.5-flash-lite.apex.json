@@ -1,0 +1,222 @@
+{
+  "task_updates": [
+    {
+      "task_ref": null,
+      "new_task": {
+        "temp_id": "n1",
+        "title": {
+          "en": "Dry Van Peoria IL → St. Louis MO, load 48221",
+          "ru": "Сухой фургон Peoria IL → St. Louis MO, груз 48221"
+        },
+        "kind": "truck_availability",
+        "ref": "48221"
+      },
+      "proposed_status": "received",
+      "evidence_message_id": "m1",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Customer requested load cover and truck confirmation for load 48221.",
+        "ru": "Клиент запросил покрытие груза и подтверждение трака для груза 48221."
+      }
+    },
+    {
+      "task_ref": "n1",
+      "new_task": null,
+      "proposed_status": "acknowledged",
+      "evidence_message_id": "m3",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Dispatcher acknowledged the load request.",
+        "ru": "Диспетчер подтвердил получение запроса на груз."
+      }
+    },
+    {
+      "task_ref": "n1",
+      "new_task": null,
+      "proposed_status": "in_progress",
+      "evidence_message_id": "m4",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Dispatcher checked with fleet for truck availability.",
+        "ru": "Диспетчер проверил с флотом доступность трака."
+      }
+    },
+    {
+      "task_ref": "n1",
+      "new_task": null,
+      "proposed_status": "deadline_set",
+      "evidence_message_id": "m6",
+      "deadline_at": "2026-09-25T08:50:00-05:00",
+      "explanation": {
+        "en": "Dispatcher promised to confirm the truck within 30 minutes.",
+        "ru": "Диспетчер пообещал подтвердить трак в течение 30 минут."
+      }
+    },
+    {
+      "task_ref": "n1",
+      "new_task": null,
+      "proposed_status": "delivered",
+      "evidence_message_id": "m8",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Truck #118 was confirmed to the customer.",
+        "ru": "Трак №118 был подтвержден клиенту."
+      }
+    },
+    {
+      "task_ref": null,
+      "new_task": {
+        "temp_id": "n2",
+        "title": {
+          "en": "POD for load 48190",
+          "ru": "POD для груза 48190"
+        },
+        "kind": "pod_bol",
+        "ref": "48190"
+      },
+      "proposed_status": "received",
+      "evidence_message_id": "m7",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Customer requested POD for delivered load 48190.",
+        "ru": "Клиент запросил POD для доставленного груза 48190."
+      }
+    },
+    {
+      "task_ref": "n2",
+      "new_task": null,
+      "proposed_status": "deadline_set",
+      "evidence_message_id": "m10",
+      "deadline_at": "2026-09-25T15:00:00-05:00",
+      "explanation": {
+        "en": "Dispatcher promised to send POD by 3pm today.",
+        "ru": "Диспетчер пообещал отправить POD сегодня до 15:00."
+      }
+    },
+    {
+      "task_ref": null,
+      "new_task": {
+        "temp_id": "n3",
+        "title": {
+          "en": "Reefer Chicago IL → Dallas TX, load 48230",
+          "ru": "Рефрижератор Chicago IL → Dallas TX, груз 48230"
+        },
+        "kind": "truck_availability",
+        "ref": "48230"
+      },
+      "proposed_status": "received",
+      "evidence_message_id": "m12",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Customer requested reefer load coverage for 48230.",
+        "ru": "Клиент запросил покрытие рефрижераторного груза 48230."
+      }
+    },
+    {
+      "task_ref": "n3",
+      "new_task": null,
+      "proposed_status": "acknowledged",
+      "evidence_message_id": "m13",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Dispatcher acknowledged the reefer request with 'ok'.",
+        "ru": "Диспетчер подтвердил запрос на рефрижератор ответу 'ok'."
+      }
+    },
+    {
+      "task_ref": null,
+      "new_task": {
+        "temp_id": "n4",
+        "title": {
+          "en": "ETA update for load 48207 Joliet → Memphis",
+          "ru": "Обновление ETA для груза 48207 Joliet → Memphis"
+        },
+        "kind": "eta_update",
+        "ref": "48207"
+      },
+      "proposed_status": "received",
+      "evidence_message_id": "m14",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Customer requested an ETA update for load 48207.",
+        "ru": "Клиент запросил обновление ETA для груза 48207."
+      }
+    },
+    {
+      "task_ref": "n4",
+      "new_task": null,
+      "proposed_status": "acknowledged",
+      "evidence_message_id": "m15",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Dispatcher acknowledged the ETA request.",
+        "ru": "Диспетчер подтвердил запрос ETA."
+      }
+    },
+    {
+      "task_ref": "n4",
+      "new_task": null,
+      "proposed_status": "in_progress",
+      "evidence_message_id": "m16",
+      "deadline_at": null,
+      "explanation": {
+        "en": "Dispatcher asked fleet for the ETA.",
+        "ru": "Диспетчер запросил ETA у флота."
+      }
+    }
+  ],
+  "quality_flags": [
+    {
+      "kind": "eta_not_forwarded",
+      "message_id": "m17",
+      "task_ref": "n4",
+      "severity": 4,
+      "reason": {
+        "en": "Fleet provided ETA (16:30) at 11:02, but dispatcher never forwarded it to the customer, leading to a severe complaint at 14:10.",
+        "ru": "Флот предоставил ETA (16:30) в 11:02, но диспетчер так и не передал его клиенту, что привело к серьезной жалобе в 14:10."
+      }
+    },
+    {
+      "kind": "complaint",
+      "message_id": "m20",
+      "task_ref": "n4",
+      "severity": 4,
+      "reason": {
+        "en": "Customer complained about chasing three times for updates on load 48207.",
+        "ru": "Клиент пожаловался на то, что уже трижды добивается обновлений по грузу 48207."
+      }
+    },
+    {
+      "kind": "rude_tone",
+      "message_id": "m21",
+      "task_ref": "n4",
+      "severity": 5,
+      "reason": {
+        "en": "Dispatcher told the customer to stop spamming and insulted them by dismissing their request unprofessionally.",
+        "ru": "Диспетчер сказал клиенту прекратить спамить и непрофессионально ответил на запрос."
+      }
+    }
+  ],
+  "suggestions": [
+    {
+      "channel_id": "c1",
+      "task_ref": "n4",
+      "intent": "reply_customer",
+      "text": "Hi Sarah, sincere apologies for the delay. Load 48207 is estimated to deliver in Memphis today at 4:30 PM CST. Driver Sanjar is currently passing Carbondale. Regarding load 48230, we are assigning a unit and will confirm by 4:00 PM today.",
+      "rationale": {
+        "en": "Address the unforwarded ETA for load 48207, apologize for the delay, and provide an update on the pending reefer load 48230.",
+        "ru": "Предоставить неполученный ETA по грузу 48207, извиниться за задержку и дать апдейт по ожидающему рефрижератору 48230."
+      },
+      "used_message_ids": [
+        "m17",
+        "m23"
+      ],
+      "used_rule_ids": []
+    }
+  ],
+  "brief_update": "Broker: Apex Logistics. Key contacts: Mike Reynolds, Sarah Kim. Working relationships have been strained due to delayed ETA responses and unprofessional communication by dispatcher Timur. Active loads/requests include tracking load 48207, pending POD for 48190, and reefer load 48230 coverage confirmation.",
+  "day_summary": {
+    "en": "The team covered dry van load 48221 with truck #118 and received rate cons, but failed to forward an ETA for load 48207 despite fleet providing it at 11:02. This resulted in a customer complaint and an unprofessional, rude response from dispatcher Timur. Additionally, a reefer load 48230 request remains unconfirmed and a POD request for load 48190 is pending past the promised deadline.",
+    "ru": "Команда закрыла сухой фургон 48221 траком №118, но не передала ETA по грузу 48207, несмотря на данные флота от 11:02. Это привело к жалобе клиента и грубому ответу диспетчера Тимура. Кроме того, запрос на рефрижератор 48230 остался неподтвержденным, а отправка POD по 48190 задерживается после обещанного дедлайна."
+  }
+}

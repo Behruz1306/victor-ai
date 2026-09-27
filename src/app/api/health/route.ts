@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { env } from "@/lib/env";
+import { providerChain } from "@/lib/llm/providers";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       db: "up",
-      llm: env().llm.provider,
+      llm: providerChain()[0]!.id,
       latencyMs: Date.now() - started,
     });
   } catch {

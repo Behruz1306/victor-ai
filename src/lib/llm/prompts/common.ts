@@ -22,6 +22,26 @@ export function fmtStamp(d: Date, tz: string): string {
   }).format(d);
 }
 
+/** "Saturday, September 26, 2026, 10:00 (America/Chicago, UTC-05:00)" — the year and offset the model needs. */
+export function fmtNow(d: Date, tz: string): string {
+  const date = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(d);
+  const off =
+    new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "longOffset" })
+      .formatToParts(d)
+      .find((p) => p.type === "timeZoneName")
+      ?.value.replace("GMT", "UTC") ?? "UTC";
+  return `${date} (${tz}, ${off === "UTC" ? "UTC+00:00" : off})`;
+}
+
 /** One timeline line: [chat_type|title] [time] [side:name] (id): text */
 export function renderMessage(m: CtxMessage, tz: string): string {
   const reply = m.replyToId ? ` ↩${m.replyToId}` : "";

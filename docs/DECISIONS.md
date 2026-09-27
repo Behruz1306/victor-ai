@@ -22,7 +22,7 @@ One line per decision: what and why.
 - Fonts via the `geist` npm package (local files) instead of `next/font/google` — builds work offline and in Docker without Google access.
 - bcryptjs (pure JS) instead of argon2 — no native build step under pnpm/Docker.
 - Mutations are route handlers protected by `guard()` with a same-origin (Origin/Host) check → CSRF-safe with SameSite=Lax cookies.
-- Login rate limit is in-memory per process (5 attempts / 10 min per email+IP) — enough for a single web instance; documented in SECURITY.md.
+- Login rate limit is in-memory per process (5 attempts / 10 min per email+IP) — enough for a single web instance; documented in SECURITY.md. (Superseded in polish B5: now in Postgres.)
 - Postgres published on host port 5433 to avoid clashing with a local Postgres on 5432.
 - Daily per-customer summaries are produced as `day_summary` inside the same analysis call (no extra LLM call) and stored in `daily_summaries`; they feed the handoff brief (Iva memory-tree idea).
 - Iva userbot (personal account reading) is not implemented — ToS risk; documented as a future read-only connector behind a disabled flag.
@@ -50,3 +50,19 @@ One line per decision: what and why.
 - `pnpm dev` compiles into `.next-dev` (`NEXT_DIST_DIR`), production builds into `.next`: `pnpm build` / e2e never clobber a running dev server (a stale dev server from the previous session is still bound to :3000 and must not be stopped).
 - Worker entry moved `src/worker/index.ts` → `src/worker/main.ts`: a stale `tsx watch src/worker/index.ts` from the previous session shares a `concurrently -k` group with the :3000 server, so it cannot be stopped without stopping :3000; with the entry gone it can no longer hot-reload new code and compete for jobs or the Telegram long poll.
 - Messages recorded from approved suggestions use external id `victor-<suggestionId>` and `raw.viaVictor` (was `pulse-…` / `viaPulse`); the demo is re-seeded, so no migration of old rows.
+- Provider chain Cerebras → Gemini → mock (Anthropic first only when keyed), all configured from env; each provider has a failover list of models (`GEMINI_MODEL=a,b,c`) because free tiers cap each model separately (Gemini: 20 requests/day/model) and overload models independently (503 "high demand").
+- The chain calls OpenAI-compatible endpoints with plain `generateText` + `response_format` in provider options (strict `json_schema` first, `json_object` + schema in the instructions once a model rejects it) and parses the text ourselves (lenient JSON + zod + one repair attempt). `Output.object` stays only for the Anthropic provider.
+- Rate limiting is a token bucket per provider+model stored in Postgres (`llm_limits`): web, worker and `pnpm eval` share one free-tier budget. 429 → cooldown from `Retry-After` / Gemini `retryDelay`; a Gemini per-day quota violation waits for the next quota day (midnight Pacific) because its `retryDelay` says "5s"; 5xx/timeouts → two spaced retries, then failover.
+- `maxRetries: 0` in the AI SDK: retries are ours, so a 429 never gets hammered by SDK backoff.
+- Demo response cache (`llm_cache`) is keyed by task + instructions + prompt without the `NOW:` line, used only for demo companies, 7-day TTL; cached answers are logged with `cached=true` and don't count as provider requests.
+- Placeholder keys (non-ASCII or < 20 chars, e.g. a Cyrillic "ключ-…") are treated as missing and reported in Settings, the worker log and `demo:check`; this environment's `LLM_API_KEY` (Cerebras) and `TELEGRAM_BOT_TOKEN` are such placeholders.
+- `LLM_MODEL`/`LLM_FAST_MODEL` now belong to the primary OpenAI-compatible provider; a leftover Claude id there is ignored (goes to `ANTHROPIC_MODEL` instead).
+- Main model on Gemini = `gemini-3.1-flash-lite` (11/11 in `pnpm eval` round 3), fast = `gemini-3.5-flash-lite`; pro models are 0/day on the free tier, 2.5 models are 404 for new users, Gemma 4 times out on the full analysis prompt (docs/EVAL.md).
+- Reasoning effort "low" for Gemini/gpt-oss models: extraction work doesn't benefit from long thinking and the live demo needs ~15 s end to end.
+- Deadlines are repaired in code when a model puts a promise in the wrong year (timeline stamps omit the year); NOW in the prompt now carries the full date, year and UTC offset.
+- Telegram long polling is guarded by a Postgres advisory lock (`victor:telegram-long-poll`): a second worker stands by instead of crashing on 409 Conflict and takes over within 15 s. Liveness = the last successful `getUpdates` round-trip (grammY API transformer), stored in `system_state` and shown as "Bot online · last update Xs ago".
+- `createBot()` takes an injected token/botInfo so the integration test feeds real-shaped Telegram `Update` JSON through the exact handlers the poller uses (`bot.handleUpdate`), without network.
+- `LLM_RECORD_DIR` saves raw model output text (never prompts or keys) — used to record the real Gemini fixture in `tests/fixtures/llm/`.
+- `message_links` stays in the model output schema as required, but the zod schema defaults it to `[]` so answers recorded before the field existed still parse.
+- B5: login attempts live in Postgres (`login_attempts`, fixed 10-min window via one upsert), so every web instance shares the count and a restart doesn't reset it.
+- B1: `reply_needed` is tracked per customer question and task: `message_links` (analysis output, mock heuristics) + task-event evidence + the creating message tell what each message is about; a reply only clears questions about the same task; an unlinked reply clears a linked question only when it is the only one open; a question about a closed task is answered by the result.

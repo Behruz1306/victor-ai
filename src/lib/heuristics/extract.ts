@@ -37,13 +37,17 @@ export function extractLane(text: string): Lane | null {
   const arrow = new RegExp(String.raw`(${CITY})\s*(?:→|->|—>|=>|–>)\s*(${CITY})`, "u").exec(text);
   const m =
     arrow ??
-    new RegExp(String.raw`\bfrom (?:our )?(${CITY})(?: \p{Ll}+)? to (${CITY})`, "u").exec(text) ??
+    new RegExp(
+      String.raw`\b(?:from|out of) (?:our )?(${CITY})(?: \p{Ll}+)?,? (?:going |headed |heading |delivering )?to (${CITY})`,
+      "u",
+    ).exec(text) ??
+    new RegExp(String.raw`(?<!\p{L})из (${CITY}) (?:в|до) (${CITY})`, "u").exec(text) ??
     new RegExp(String.raw`\b(${CITY}) to (${CITY})\b`, "u").exec(text);
   if (!m) return null;
   const clean = (s: string) => s.replace(/[.,]$/, "").trim();
   const from = clean(m[1]!);
   const to = clean(m[2]!);
-  if (/^(PU|DEL|Load|Need|Hi|Hey|Also)$/i.test(from.split(" ")[0]!)) return null;
+  if (/^(PU|DEL|Load|Need|Hi|Hey|Also|Нужен|Нужна|Есть)$/i.test(from.split(" ")[0]!)) return null;
   return { from, to };
 }
 
@@ -125,8 +129,8 @@ export function mentionsCity(text: string, city: string): boolean {
 
 export function equipmentOf(text: string): "reefer" | "dry van" | "flatbed" | null {
   if (/\breefer|\bреф/i.test(text)) return "reefer";
-  if (/dry ?van|\bvan\b/i.test(text)) return "dry van";
-  if (/flat ?bed/i.test(text)) return "flatbed";
+  if (/dry ?van|\bvans?\b|(?<!\p{L})фур[аыу]/iu.test(text)) return "dry van";
+  if (/flat ?bed|(?<!\p{L})площадк/iu.test(text)) return "flatbed";
   return null;
 }
 
@@ -243,27 +247,43 @@ export function parseDeadline(text: string, base: Date, tz: string): Date | null
 export type RequestMatch = { kind: TaskKind; equipment: ReturnType<typeof equipmentOf> };
 
 const ASK =
-  /\?|\b(need|needs|can you|could you|please|pls|send|looking for|have a|any chance|want)\b/i;
+  /\?|\b(need|needs|can you|could you|can we|could we|please|pls|plz|send|looking for|have a|any chance|want|do you have|interested)\b|(?<!\p{L})(нужен|нужна|нужно|нужны|скиньте|пришлите|отправьте|можете|сможете|подскажите|пожалуйста|возьм[её]те|закроете)(?!\p{L})/iu;
 
 /** Customer message that opens a task (or follows up on one). */
 export function detectRequest(text: string): RequestMatch | null {
   const eq = equipmentOf(text);
   const hasRef = extractRefs(text).length > 0;
   if (
-    /\b(eta|where is|where's|status on|update on|updates on|check call|tracking|location of)\b/i.test(
+    (/\b(eta|where is|where's|status on|update on|updates on|check call|tracking|location of|how far (?:out|away))\b/i.test(
       text,
-    ) &&
+    ) ||
+      /\bwhen will\b.{0,40}\b(deliver|arrive|get (?:there|in)|pick ?up|be (?:there|delivered|unloaded))/i.test(text) ||
+      /\b(still on (?:time|schedule)|running late)\b/i.test(text) ||
+      /(?<!\p{L})(где (?:сейчас )?(?:трак|машина|водитель|груз)|когда (?:будет|приедет|доедет|доставит|выгруз)|во сколько (?:будет|приедет))/iu.test(
+        text,
+      )) &&
     ASK.test(text) &&
-    (hasRef || /\bload\b/i.test(text))
+    (hasRef || /\bload\b|\btruck\b|(?<!\p{L})(груз|трак)/iu.test(text))
   )
     return { kind: "eta_update", equipment: eq };
-  if (/\b(pod|bol|proof of delivery|bill of lading)\b/i.test(text) && ASK.test(text))
+  if (
+    /\b(pod|bol|proof of delivery|bill of lading|paperwork|signed (?:docs|documents))\b|(?<!\p{L})(документ|накладн)/iu.test(
+      text,
+    ) &&
+    ASK.test(text)
+  )
     return { kind: "pod_bol", equipment: eq };
-  if (/\b(detention|lumper|layover)\b|waited \d+\s*(?:hrs?|hours)/i.test(text))
+  if (
+    /\b(detention|lumper|layover)\b|(?:waited|sat|held)\b.{0,30}\b\d+\s*(?:hrs?|hours)|(?<!\p{L})(простой|простоял|детеншн|ждал \d+ час)/iu.test(
+      text,
+    )
+  )
     return { kind: "detention", equipment: eq };
   if (
-    /\b(invoice|overcharg|short.?paid)\b/i.test(text) &&
-    /\b(fix|wrong|incorrect|shows|resend|correct|dispute|missing|says)\b/i.test(text)
+    /\b(invoice|overcharg|short.?paid)\b|(?<!\p{L})(инвойс|сч[её]т)/iu.test(text) &&
+    /\b(fix|wrong|incorrect|shows|resend|correct|dispute|missing|says)\b|(?<!\p{L})(исправ|неверн|ошиб|не та сумма)/iu.test(
+      text,
+    )
   )
     return { kind: "invoice", equipment: eq };
   if (
@@ -274,17 +294,23 @@ export function detectRequest(text: string): RequestMatch | null {
     return { kind: "reschedule", equipment: eq };
   if (/broke down|breakdown|broken down/i.test(text)) return { kind: "breakdown", equipment: eq };
   const load =
-    /\b(cover|can you (?:take|do|haul)|need an? (?:truck|reefer|van|flatbed|dry van)|need \d+ (?:trucks|reefers|vans)|have a (?:load|dry van|reefer|flatbed)|looking for a truck|quote)\b/i.test(
+    /\b(cover|can you (?:take|do|haul|run|move)|need an? (?:\d+'?\s*)?(?:truck|reefer|van|flatbed|dry van)|need \d+ (?:trucks|reefers|vans|flatbeds)|have a (?:load|dry van|reefer|flatbed)|got a load|posting a load|hot load|rate request|looking for (?:a truck|capacity|a carrier)|do you have (?:a |any )?(?:trucks?|reefers?|vans?|flatbeds?|dry vans?)|any (?:trucks?|reefers?|vans?) available|quote)\b/i.test(
+      text,
+    ) ||
+    /(?<!\p{L})(нуж(?:ен|на|ны) (?:\d+ )?(?:реф\p{L}*|фур\p{L}*|трак\p{L}*|машин\p{L}*|площадк\p{L}*)|есть груз|сможете взять|возьм[её]те|можете закрыть|закроете|есть свободн\p{L}* (?:трак|машин|реф|фур))/iu.test(
       text,
     );
-  if (load && (extractLane(text) || eq || hasRef) && ASK.test(text)) {
-    return {
-      kind:
-        /\b(do you have|available|any trucks?)\b/i.test(text) && !/\bcover\b/i.test(text)
-          ? "truck_availability"
-          : "quote",
-      equipment: eq,
-    };
+  const availability =
+    /\b(do you have|available|any trucks?)\b|(?<!\p{L})есть свободн/iu.test(text) &&
+    !/\bcover\b|возьм|закро/iu.test(text);
+  // Some phrasings are a request by themselves ("Rate request: …", "Hot load!").
+  const implied = /\b(rate request|hot load|posting a load|looking for capacity)\b/i.test(text);
+  if (
+    load &&
+    (extractLane(text) || eq || hasRef || availability) &&
+    (ASK.test(text) || implied)
+  ) {
+    return { kind: availability ? "truck_availability" : "quote", equipment: eq };
   }
   return null;
 }
@@ -302,20 +328,33 @@ const COMPLAINT = [
   /keep (?:asking|chasing)/i,
   /every hour/i,
   /again\?!|again and again/i,
+  /getting old/i,
+  /asked \d+ (?:hours?|hrs) ago/i,
+  /poor (?:communication|service)/i,
+  /\b(?:no ?one|nobody) (?:is )?(?:answering|responding|replying)\b/i,
+  /been waiting (?:for )?(?:hours|all day|since)/i,
+  /still no (?:eta|update|answer|response)/i,
   /третий раз/i,
   /сколько можно/i,
   /не отвечаете/i,
   /никто не отвечает/i,
   /безобразие/i,
   /недовольн/i,
+  /час(?:а|ов)? ждём|ждём ответа/i,
+  /ни в какие ворота/i,
+  /опять тишина/i,
+  /игнорируете/i,
 ];
 const THREAT = [
   /another carrier/i,
   /stop sending/i,
   /find someone else/i,
   /last time we/i,
+  /take (?:our|my) (?:freight|business|loads) elsewhere/i,
+  /(?:move|pull) (?:our|the) freight/i,
   /другого перевозчика/i,
   /больше не будем/i,
+  /заберём грузы|уйдём к другим/i,
 ];
 
 /** Complaint severity (4, or 5 when the customer threatens to move freight). */
@@ -353,6 +392,16 @@ const RUDE = [
   /хватит спамить/i,
   /задолбал/i,
   /не лезь/i,
+  /not my job/i,
+  /when i get to it/i,
+  /\byou people\b/i,
+  /stop (?:texting|messaging|calling|pinging) me/i,
+  /don'?t rush me/i,
+  /не пишите мне/i,
+  /некогда с вами/i,
+  /отвяжитесь/i,
+  /сами виноваты/i,
+  /не торопите/i,
 ];
 
 export function isRude(text: string): boolean {

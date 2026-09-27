@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { can, homeFor, navFor, PERMISSIONS } from "@/lib/auth/rbac";
-import { RateLimiter } from "@/lib/auth/rate-limit";
 import { isSameOrigin } from "@/lib/auth/guard";
 import { readEnv, resolveSessionSecret } from "@/lib/env";
+import { providerChain } from "@/lib/llm/providers";
 
 describe("rbac", () => {
   it("owner sees owner screen, dispatcher does not", () => {
@@ -29,15 +29,6 @@ describe("rbac", () => {
   });
 });
 
-describe("login rate limiter", () => {
-  it("allows 5 attempts per window then blocks, resets after window", () => {
-    const rl = new RateLimiter(5, 1000);
-    for (let i = 0; i < 5; i++) expect(rl.hit("k", 0)).toBe(true);
-    expect(rl.hit("k", 10)).toBe(false);
-    expect(rl.hit("k", 1001)).toBe(true);
-  });
-});
-
 describe("same-origin check (CSRF)", () => {
   const h = (init: Record<string, string>) => new Headers(init);
   it("accepts same host", () => {
@@ -53,21 +44,39 @@ describe("same-origin check (CSRF)", () => {
   });
 });
 
-describe("env / provider selection", () => {
+describe("env / provider chain", () => {
+  const E = (v: Record<string, string>) => readEnv(v as unknown as NodeJS.ProcessEnv);
+  const ids = (v: Record<string, string>) => providerChain(E(v).llm).map((p) => p.id);
+  const KEY = "k".repeat(40);
   it("falls back to mock without keys", () => {
-    expect(readEnv({} as unknown as NodeJS.ProcessEnv).llm.provider).toBe("mock");
+    expect(ids({})).toEqual(["mock"]);
   });
-  it("uses anthropic with a key and openai-compatible with base url + key", () => {
-    expect(readEnv({ ANTHROPIC_API_KEY: "x" } as unknown as NodeJS.ProcessEnv).llm.provider).toBe("anthropic");
-    expect(
-      readEnv({
-        LLM_BASE_URL: "https://openrouter.ai/api/v1",
-        LLM_API_KEY: "y",
-      } as unknown as NodeJS.ProcessEnv).llm.provider,
-    ).toBe("openai-compatible");
+  it("Cerebras first, Gemini second, mock last; Anthropic leads only when keyed", () => {
+    expect(ids({ LLM_BASE_URL: "https://api.cerebras.ai/v1", LLM_API_KEY: KEY, GEMINI_API_KEY: KEY })).toEqual([
+      "cerebras",
+      "gemini",
+      "mock",
+    ]);
+    expect(ids({ ANTHROPIC_API_KEY: KEY, GEMINI_API_KEY: KEY })).toEqual(["anthropic", "gemini", "mock"]);
   });
-  it("forced real provider without credentials degrades to mock", () => {
-    expect(readEnv({ LLM_PROVIDER: "anthropic" } as unknown as NodeJS.ProcessEnv).llm.provider).toBe("mock");
+  it("LLM_PROVIDER=mock forces offline mode even with keys", () => {
+    expect(ids({ GEMINI_API_KEY: KEY, LLM_PROVIDER: "mock" })).toEqual(["mock"]);
+  });
+  it("treats placeholder keys (non-ASCII, too short) as missing and says so", () => {
+    const e = E({ LLM_BASE_URL: "https://api.cerebras.ai/v1", LLM_API_KEY: "ключ-cerebras", TELEGRAM_BOT_TOKEN: "токен" });
+    expect(providerChain(e.llm).map((p) => p.id)).toEqual(["mock"]);
+    expect(e.telegram.token).toBeUndefined();
+    expect(e.warnings.join(" ")).toMatch(/LLM_API_KEY looks like a placeholder/);
+    expect(e.warnings.join(" ")).toMatch(/TELEGRAM_BOT_TOKEN looks like a placeholder/);
+    expect(e.warnings.join(" ")).not.toContain("ключ");
+  });
+  it("accepts a BotFather-shaped token", () => {
+    expect(E({ TELEGRAM_BOT_TOKEN: `123456789:${"A".repeat(35)}` }).telegram.token).toBeDefined();
+  });
+  it("an old Claude LLM_MODEL does not leak into the OpenAI-compatible provider", () => {
+    const e = E({ LLM_BASE_URL: "https://api.cerebras.ai/v1", LLM_API_KEY: KEY, LLM_MODEL: "claude-sonnet-5" });
+    expect(e.llm.model).not.toMatch(/claude/);
+    expect(e.llm.anthropicModel).toBe("claude-sonnet-5");
   });
   it("refuses a weak session secret in production, allows a dev fallback locally", () => {
     expect(() => resolveSessionSecret("short", true)).toThrow();

@@ -7,11 +7,17 @@ x-app-env: &app-env
   DATABASE_URL: postgres://pulse:${POSTGRES_PASSWORD:-pulse}@db:5432/pulse
   SESSION_SECRET: ${SESSION_SECRET:-}
   APP_URL: ${APP_URL:-http://localhost:3001}
-  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-  LLM_MODEL: ${LLM_MODEL:-claude-sonnet-5}
-  LLM_FAST_MODEL: ${LLM_FAST_MODEL:-claude-haiku-4-5-20251001}
-  LLM_BASE_URL: ${LLM_BASE_URL:-}
+  LLM_BASE_URL: ${LLM_BASE_URL:-https://api.cerebras.ai/v1}
   LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-gpt-oss-120b}
+  LLM_FAST_MODEL: ${LLM_FAST_MODEL:-llama3.1-8b}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  GEMINI_BASE_URL: ${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
+  GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite,gemini-3.5-flash-lite,gemini-3.7-flash,gemini-3.6-flash,gemini-3.8-flash}
+  GEMINI_FAST_MODEL: ${GEMINI_FAST_MODEL:-gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3.7-flash}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-5}
+  ANTHROPIC_FAST_MODEL: ${ANTHROPIC_FAST_MODEL:-claude-haiku-4-5-20251001}
   LLM_PROVIDER: ${LLM_PROVIDER:-}
   TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
   TELEGRAM_COMPANY_ID: ${TELEGRAM_COMPANY_ID:-}

@@ -5,12 +5,16 @@ import { getDb, closeDb } from "@/lib/db/client";
 import { systemState } from "@/lib/db/schema";
 import { recoverStaleJobs, enqueueOnce } from "@/lib/jobs/queue";
 import { env } from "@/lib/env";
+import { providerChain } from "@/lib/llm/providers";
 import { runOnce } from "./runner";
-import { startBot } from "./telegram";
+import { startBot, type RunningBot } from "./telegram";
+import { tryHoldLock, type HeldLock } from "@/lib/db/lock";
 import { schedulerTick } from "./scheduler";
 
 const db = getDb();
 let running = true;
+let telegram: RunningBot | null = null;
+let pollerLock: HeldLock | null = null;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -21,7 +25,7 @@ async function heartbeat() {
   } catch {
     // read-only filesystem: the DB heartbeat still works
   }
-  const value = { at: new Date().toISOString(), pid: process.pid, llm: env().llm.provider };
+  const value = { at: new Date().toISOString(), pid: process.pid, llm: providerChain()[0]!.id };
   await db
     .insert(systemState)
     .values({ key: "worker_heartbeat", value })
@@ -52,8 +56,49 @@ async function schedulerLoop() {
   }
 }
 
+/**
+ * Only one worker may long-poll a bot token (Telegram answers a second getUpdates consumer with
+ * 409 Conflict). The advisory lock picks the poller; other workers stay on standby and take over
+ * within 30 s if the poller dies.
+ */
+async function telegramLoop() {
+  if (!env().telegram.token) {
+    await startBot(db).catch(() => null); // records "not configured" for Settings
+    return;
+  }
+  let standbyLogged = false;
+  while (running) {
+    try {
+      if (!telegram) {
+        pollerLock ??= await tryHoldLock("victor:telegram-long-poll");
+        if (!pollerLock) {
+          if (!standbyLogged) console.log("[telegram] another worker holds the long poll — standing by");
+          standbyLogged = true;
+        } else {
+          telegram = await startBot(db);
+          const current = telegram;
+          void current?.done.then(() => {
+            // Polling ended (conflict, revoked token, stop): retry on the next tick.
+            if (telegram === current) telegram = null;
+          });
+        }
+      } else {
+        await telegram.persist();
+      }
+    } catch (err) {
+      console.error("[telegram] failed to start:", err instanceof Error ? err.message : err);
+      telegram = null;
+    }
+    for (let i = 0; i < 15 && running; i++) await sleep(1000);
+  }
+}
+
 async function main() {
-  console.log(`[worker] starting (llm=${env().llm.provider}, demo=${env().demoMode})`);
+  const chain = providerChain()
+    .map((p) => (p.kind === "mock" ? p.id : `${p.id}:${p.model}`))
+    .join(" → ");
+  console.log(`[worker] starting (llm=${chain}, demo=${env().demoMode})`);
+  for (const w of env().warnings) console.warn(`[config] ${w}`);
   const recovered = await recoverStaleJobs(db);
   if (recovered) console.log(`[worker] recovered ${recovered} stale jobs`);
   await enqueueOnce(db, {
@@ -62,16 +107,12 @@ async function main() {
     dedupeKey: `retention:${new Date().toISOString().slice(0, 10)}`,
     delayMs: 60_000,
   });
-  const bot = await startBot(db).catch((err: unknown) => {
-    console.error("[telegram] failed to start:", err instanceof Error ? err.message : err);
-    return null;
-  });
-
   const stop = async (signal: string) => {
     if (!running) return;
     console.log(`[worker] ${signal} — shutting down`);
     running = false;
-    await bot?.stop().catch(() => {});
+    await telegram?.stop().catch(() => {});
+    await pollerLock?.release();
     await sleep(500);
     await closeDb();
     process.exit(0);
@@ -79,7 +120,7 @@ async function main() {
   process.on("SIGINT", () => void stop("SIGINT"));
   process.on("SIGTERM", () => void stop("SIGTERM"));
 
-  await Promise.all([jobLoop(), schedulerLoop()]);
+  await Promise.all([jobLoop(), schedulerLoop(), telegramLoop()]);
 }
 
 main().catch(async (err: unknown) => {
