@@ -76,17 +76,18 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Phase gate + commit
 
 ## Phase 9 — Hardening & packaging
-- [ ] Tenant isolation test + RBAC tests
-- [ ] Playwright golden path + screenshots in `docs/screenshots/`, review them
-- [ ] Production Dockerfile (web standalone + worker bundle), compose with auto-migrate + demo seed
-- [ ] `docs/DEPLOY.md`, `docs/SECURITY.md`
-- [ ] Final gate + commit + final report
+- [x] Tenant isolation test + RBAC tests
+- [x] Playwright golden path + screenshots in `docs/screenshots/`, review them
+- [x] Production Dockerfile (web standalone + worker bundle), compose with auto-migrate + demo seed
+- [x] `docs/DEPLOY.md`, `docs/SECURITY.md`
+- [x] Final gate + commit + final report
 
 ## Stretch
 - [x] Call transcript upload
-- [ ] CSV export of tasks
-- [ ] Per-customer daily summaries view
-- [ ] Email IMAP connector
+- [ ] CSV export of tasks (not done)
+- [ ] Per-customer daily summaries view (data is stored in `daily_summaries` and used by handoff; no separate screen)
+- [ ] Email IMAP connector (not done; normalizer contract ready for it)
 
 ## Blockers / notes
-- No `ANTHROPIC_API_KEY` / `TELEGRAM_BOT_TOKEN` in this environment → verified with the mock provider; Telegram live path verified by unit tests of the normalizer, not against a real group.
+- No `ANTHROPIC_API_KEY` / `TELEGRAM_BOT_TOKEN` in this environment → everything verified with the mock provider; the Telegram path is verified through the normalizer + ingestion integration test (a real group was not available). Real-model runs are untested here.
+- Dot-env files could not be written by the build session → template ships as `env.example`.

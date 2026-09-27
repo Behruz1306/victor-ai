@@ -18,4 +18,5 @@ const common = {
 };
 
 await build({ ...common, entryPoints: { worker: "src/worker/index.ts" }, outdir: "dist", outExtension: { ".js": ".mjs" } });
+// migrate/seed run in the worker image (which has production node_modules).
 await build({ ...common, entryPoints: { migrate: "src/lib/db/migrate.ts", seed: "seed/seed.ts" }, outdir: "dist", outExtension: { ".js": ".mjs" } });

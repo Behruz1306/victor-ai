@@ -1,4 +1,5 @@
 // Worker process: Telegram long polling, job runner, scheduler (SLA loop, retention, heartbeat).
+import { writeFileSync } from "node:fs";
 import { sql } from "drizzle-orm";
 import { getDb, closeDb } from "@/lib/db/client";
 import { systemState } from "@/lib/db/schema";
@@ -14,6 +15,12 @@ let running = true;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function heartbeat() {
+  // File heartbeat for the container healthcheck; DB heartbeat for the Settings/Demo screens.
+  try {
+    writeFileSync("/tmp/pulse-worker-heartbeat", new Date().toISOString());
+  } catch {
+    // read-only filesystem: the DB heartbeat still works
+  }
   const value = { at: new Date().toISOString(), pid: process.pid, llm: env().llm.provider };
   await db
     .insert(systemState)

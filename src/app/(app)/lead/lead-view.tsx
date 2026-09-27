@@ -190,7 +190,7 @@ function Problems({
         ) : !q.data?.problems.length ? (
           <EmptyState title={t("lead.noProblems")} />
         ) : (
-          <ul className="divide-y">
+          <ul className="divide-y" data-testid="lead-problems">
             {q.data.problems.map((p) => (
               <li key={p.id} className="flex items-start gap-3 px-4 py-3">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">

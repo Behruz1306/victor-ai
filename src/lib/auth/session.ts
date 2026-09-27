@@ -1,6 +1,6 @@
 import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
-import { env } from "@/lib/env";
+import { env, resolveSessionSecret } from "@/lib/env";
 import type { Role } from "@/lib/db/schema";
 
 export type SessionData = {
@@ -15,7 +15,7 @@ export const SESSION_COOKIE = "pulse_session";
 export function sessionOptions(): SessionOptions {
   const e = env();
   return {
-    password: e.sessionSecret,
+    password: resolveSessionSecret(e.sessionSecret, e.isProd),
     cookieName: SESSION_COOKIE,
     ttl: 60 * 60 * 12,
     cookieOptions: {

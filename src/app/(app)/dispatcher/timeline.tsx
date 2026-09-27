@@ -76,7 +76,7 @@ export function Timeline({
           return (
             <React.Fragment key={m.id}>
               {showDay ? (
-                <div className="sticky top-0 z-10 -mx-3 mb-1 flex justify-center bg-card/90 py-1.5 backdrop-blur">
+                <div className="sticky top-0 z-10 -mx-3 mb-1 flex justify-center bg-card py-1.5">
                   <span className="rounded-full border bg-card px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-xs">
                     {day}
                   </span>

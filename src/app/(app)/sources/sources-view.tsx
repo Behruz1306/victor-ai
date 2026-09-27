@@ -324,7 +324,7 @@ function ChannelMessages({
               key={m.id}
               className="flex gap-2 border-b border-dashed border-border/60 py-1.5 last:border-0"
             >
-              <span className="w-32 shrink-0 whitespace-nowrap text-muted-foreground">{clock(m.sentAt, true)}</span>
+              <span className="w-44 shrink-0 whitespace-nowrap text-muted-foreground">{clock(m.sentAt, true)}</span>
               <div className="min-w-0 flex-1">
                 <span
                   className={cn(

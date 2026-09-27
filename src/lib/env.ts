@@ -27,6 +27,7 @@ const schema = z.object({
 export type Env = {
   isProd: boolean;
   appUrl: string;
+  /** Raw value; use resolveSessionSecret() before sealing cookies. */
   sessionSecret: string;
   demoMode: boolean;
   sendMode: "copy" | "bot";
@@ -43,6 +44,20 @@ export type Env = {
 };
 
 const DEV_SESSION_SECRET = "dev-only-session-secret-not-for-production-use-000";
+
+/**
+ * Secret for sealing session cookies. Only the web process needs it, so the check lives here
+ * (the worker must start without it). Production refuses a missing/weak secret; development
+ * falls back to a fixed local-only value.
+ */
+export function resolveSessionSecret(value: string, isProd: boolean): string {
+  const weak = !value || value.startsWith("change-me") || value.length < 32;
+  if (!weak) return value;
+  if (isProd && process.env.NEXT_PHASE !== "phase-production-build") {
+    throw new Error("SESSION_SECRET must be set to 32+ random characters in production");
+  }
+  return DEV_SESSION_SECRET;
+}
 
 function emptyToUndef(v: string | undefined): string | undefined {
   return v && v.trim() ? v.trim() : undefined;
@@ -65,14 +80,7 @@ export function readEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (provider === "anthropic" && !anthropicKey) provider = "mock";
   if (provider === "openai-compatible" && !(baseUrl && apiKey)) provider = "mock";
 
-  let sessionSecret = emptyToUndef(raw.SESSION_SECRET);
-  if (!sessionSecret || sessionSecret.startsWith("change-me") || sessionSecret.length < 32) {
-    if (isProd && process.env.NEXT_PHASE !== "phase-production-build") {
-      throw new Error("SESSION_SECRET must be set to 32+ random characters in production");
-    }
-    sessionSecret = DEV_SESSION_SECRET;
-  }
-
+  const sessionSecret = emptyToUndef(raw.SESSION_SECRET) ?? "";
   const retention = Number(raw.DATA_RETENTION_DAYS ?? "90");
   return {
     isProd,

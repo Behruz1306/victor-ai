@@ -31,3 +31,12 @@ One line per decision: what and why.
 - `system_state` (key/value) is a global infra table for worker heartbeat and bot identity; it holds no tenant data, so it has no company_id (exception to the 'every table has company_id' rule, like the job queue's global jobs).
 - Phases 2 and 3 were built together and committed as one commit: the Sources mapping UI needs the LLM layer (AI mapping proposal) and the worker handlers need the pipeline.
 - In DEMO_MODE, Telegram messages use a 5 s analysis debounce (15 s otherwise) so the live-mode demo meets the ~15 s promise including processing and 3 s UI polling.
+- Evidence sent before a task's request is rejected by the application layer (`evidence_before_request`), and the mock only links messages to requests that already existed — found in live replay where yesterday's reply "acknowledged" a task created today.
+- A re-analysis that proposes nothing for a chat retires that chat's pending suggestion (the need is gone); a changed text supersedes it.
+- Edits are distilled into rules inline in the Edit request (so the UI can say "New rule learned…" immediately); a failure falls back to a queued `distill_rule` job.
+- Handoff briefs are generated synchronously in the request (one main-model call per customer) and stored as a draft; confirming reassigns customers and their open tasks.
+- Docker: the worker container applies migrations and seeds the demo into an empty DB; web starts after the worker is healthy, so only one process migrates.
+- Docker: when `SESSION_SECRET` is missing the web container generates a random one at start (never a known default); the secret check lives in the session code so the worker starts without it.
+- Dockerfile default target `app` contains web + worker for PaaS "two services from one image"; compose uses the slimmer `web`/`worker` targets.
+- Owner digest ranking adds a kind weight (complaint > rudeness > overdue > …) at equal severity, so relationship damage surfaces first.
+- pgvector is enabled (first migration) but unused in the MVP — no embedding provider without extra keys; rule similarity uses token Jaccard.

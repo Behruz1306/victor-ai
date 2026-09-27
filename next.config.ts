@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   typedRoutes: false,
+  devIndicators: false,
   async headers() {
     return [
       {

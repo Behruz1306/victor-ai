@@ -1,5 +1,25 @@
 # Single-VPS deployment: Postgres (pgvector) + web + worker.
-# Local dev: `docker compose up -d db` and run web/worker with pnpm.
+#   docker compose up -d --build        → everything (needs SESSION_SECRET, see env.example)
+#   docker compose up -d db             → only the database for local development
+# The worker applies migrations on start and seeds the demo company into an empty DB
+# when DEMO_MODE=true; web starts once the worker is healthy.
+x-app-env: &app-env
+  DATABASE_URL: postgres://pulse:${POSTGRES_PASSWORD:-pulse}@db:5432/pulse
+  SESSION_SECRET: ${SESSION_SECRET:-}
+  APP_URL: ${APP_URL:-http://localhost:3000}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-claude-sonnet-5}
+  LLM_FAST_MODEL: ${LLM_FAST_MODEL:-claude-haiku-4-5-20251001}
+  LLM_BASE_URL: ${LLM_BASE_URL:-}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_PROVIDER: ${LLM_PROVIDER:-}
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+  TELEGRAM_COMPANY_ID: ${TELEGRAM_COMPANY_ID:-}
+  TELEGRAM_BUSINESS_ENABLED: ${TELEGRAM_BUSINESS_ENABLED:-false}
+  SEND_MODE: ${SEND_MODE:-copy}
+  DEMO_MODE: ${DEMO_MODE:-true}
+  DATA_RETENTION_DAYS: ${DATA_RETENTION_DAYS:-90}
+
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -9,7 +29,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulse}
       POSTGRES_DB: pulse
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -17,6 +37,30 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
+  worker:
+    build:
+      context: .
+      target: worker
+    restart: unless-stopped
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    environment: *app-env
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
 
 volumes:
   pgdata:

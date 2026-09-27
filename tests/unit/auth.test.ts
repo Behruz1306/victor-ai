@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { can, homeFor, navFor, PERMISSIONS } from "@/lib/auth/rbac";
 import { RateLimiter } from "@/lib/auth/rate-limit";
 import { isSameOrigin } from "@/lib/auth/guard";
-import { readEnv } from "@/lib/env";
+import { readEnv, resolveSessionSecret } from "@/lib/env";
 
 describe("rbac", () => {
   it("owner sees owner screen, dispatcher does not", () => {
@@ -69,9 +69,13 @@ describe("env / provider selection", () => {
   it("forced real provider without credentials degrades to mock", () => {
     expect(readEnv({ LLM_PROVIDER: "anthropic" } as unknown as NodeJS.ProcessEnv).llm.provider).toBe("mock");
   });
-  it("refuses a weak session secret in production", () => {
-    expect(() =>
-      readEnv({ NODE_ENV: "production", SESSION_SECRET: "short" } as unknown as NodeJS.ProcessEnv),
-    ).toThrow();
+  it("refuses a weak session secret in production, allows a dev fallback locally", () => {
+    expect(() => resolveSessionSecret("short", true)).toThrow();
+    expect(resolveSessionSecret("", false).length).toBeGreaterThanOrEqual(32);
+    const strong = "x".repeat(40);
+    expect(resolveSessionSecret(strong, true)).toBe(strong);
+  });
+  it("the worker can read env in production without a session secret", () => {
+    expect(() => readEnv({ NODE_ENV: "production" } as unknown as NodeJS.ProcessEnv)).not.toThrow();
   });
 });
