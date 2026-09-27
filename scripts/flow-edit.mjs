@@ -1,7 +1,7 @@
 // Dev helper: log in as Timur, edit the first suggestion with a reason, screenshot the result.
 import { chromium } from "@playwright/test";
 const out = process.argv[2];
-const base = process.env.BASE_URL ?? "http://localhost:3000";
+const base = process.env.BASE_URL ?? "http://localhost:3001";
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
 await page.goto(`${base}/login`);

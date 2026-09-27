@@ -6,7 +6,7 @@
 x-app-env: &app-env
   DATABASE_URL: postgres://pulse:${POSTGRES_PASSWORD:-pulse}@db:5432/pulse
   SESSION_SECRET: ${SESSION_SECRET:-}
-  APP_URL: ${APP_URL:-http://localhost:3000}
+  APP_URL: ${APP_URL:-http://localhost:3001}
   ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
   LLM_MODEL: ${LLM_MODEL:-claude-sonnet-5}
   LLM_FAST_MODEL: ${LLM_FAST_MODEL:-claude-haiku-4-5-20251001}
@@ -55,7 +55,7 @@ services:
     restart: unless-stopped
     environment: *app-env
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "${WEB_PORT:-3001}:3001"
     depends_on:
       db:
         condition: service_healthy

@@ -10,7 +10,7 @@ export type SessionData = {
   issuedAt?: number;
 };
 
-export const SESSION_COOKIE = "pulse_session";
+export const SESSION_COOKIE = "victor_session";
 
 export function sessionOptions(): SessionOptions {
   const e = env();

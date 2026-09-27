@@ -342,7 +342,7 @@ function ChannelMessages({
                     <UntrustedBadge />
                   </span>
                 ) : null}
-                {m.viaPulse ? (
+                {m.viaVictor ? (
                   <span className="ml-1 text-[10px] text-primary">{t("disp.sentVia")}</span>
                 ) : null}
                 <div className="font-sans text-[13px] whitespace-pre-wrap">{m.text}</div>

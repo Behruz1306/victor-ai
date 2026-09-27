@@ -10,28 +10,28 @@
     {
       "key": "rustam",
       "name": "Rustam",
-      "email": "owner@demo.pulse",
+      "email": "owner@demo.victor.ai",
       "role": "owner",
       "team": "Management"
     },
     {
       "key": "dilnoza",
       "name": "Dilnoza",
-      "email": "lead@demo.pulse",
+      "email": "lead@demo.victor.ai",
       "role": "lead",
       "team": "Dispatch"
     },
     {
       "key": "timur",
       "name": "Timur",
-      "email": "timur@demo.pulse",
+      "email": "timur@demo.victor.ai",
       "role": "dispatcher",
       "team": "Dispatch"
     },
     {
       "key": "aziz",
       "name": "Aziz",
-      "email": "aziz@demo.pulse",
+      "email": "aziz@demo.victor.ai",
       "role": "dispatcher",
       "team": "Dispatch"
     }

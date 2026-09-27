@@ -1,6 +1,6 @@
 # Security & privacy
 
-Pulse reads a company's work chats. That is the whole product, and it is also the main risk.
+Victor AI reads a company's work chats. That is the whole product, and it is also the main risk.
 This document states what we defend against, how, and what is explicitly out of scope for the MVP.
 
 ## Threat model

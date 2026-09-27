@@ -1,7 +1,7 @@
 // Adapted from iva-agent (MIT), see THIRD_PARTY_NOTICES.md
 // Source: agent/lib/security-gate.ts (sanitizeInbound, "web" surface rules).
 //
-// Deterministic prompt-injection screen for inbound chat text. For Pulse every chat
+// Deterministic prompt-injection screen for inbound chat text. For Victor AI every chat
 // message is DATA, never an instruction, so the policy is Iva's warn-and-pass "web"
 // surface: the text always reaches the model, but a flagged message is marked
 // `untrusted_flag` and wrapped in <untrusted> tags inside every prompt.

@@ -1,4 +1,4 @@
-# Pulse — project memory
+# Victor AI — project memory
 
 AI control layer for client work in chats, segment: US trucking (carriers + brokers).
 Reads team chats (Telegram groups, later email/calls), extracts **customer tasks**
@@ -15,7 +15,7 @@ unticked item in PROGRESS.
 - TypeScript strict, Node 22, pnpm. Next.js 15 (App Router) + Tailwind v4 + shadcn-style
   components (local, in `src/components/ui`), lucide-react, Recharts, TanStack Query (3 s polling).
 - Postgres 16 + pgvector, Drizzle ORM + drizzle-kit. DB-backed job queue (`jobs`, `FOR UPDATE SKIP LOCKED`).
-- Worker: `src/worker/index.ts` (tsx in dev, esbuild bundle in prod): Telegram long polling
+- Worker: `src/worker/main.ts` (tsx in dev, esbuild bundle in prod): Telegram long polling
   (grammY), job runner, SLA/scheduler loop.
 - LLM: Vercel AI SDK 7 (`generateText` + `Output.object`), providers anthropic /
   openai-compatible / **mock** (default without keys). Only via `src/lib/llm/`.
@@ -28,7 +28,7 @@ docker compose up -d db        # Postgres 16 + pgvector on localhost:5433
 pnpm db:migrate                # apply drizzle migrations
 pnpm seed                      # demo company + raw messages + enqueue analysis
 pnpm seed:reset                # wipe demo company
-pnpm dev                       # web (3000) + worker together
+pnpm dev                       # web (3001) + worker together
 pnpm dev:web / pnpm dev:worker # separately
 pnpm typecheck && pnpm lint && pnpm test && pnpm build   # phase gate
 pnpm test:e2e                  # Playwright golden path (needs db + seeded data)

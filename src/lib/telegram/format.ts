@@ -1,6 +1,6 @@
 // Adapted from iva-agent (MIT), see THIRD_PARTY_NOTICES.md
 // Source: agent/lib/telegram-format.ts (escaping + length-safe chunking).
-// Pulse sends plain text, so only the escaping and chunking parts are kept.
+// Victor AI sends plain text, so only the escaping and chunking parts are kept.
 
 export const TELEGRAM_TEXT_LIMIT = 4096;
 

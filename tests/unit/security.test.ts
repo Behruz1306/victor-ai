@@ -47,7 +47,7 @@ describe("injection screen (ported from Iva)", () => {
 describe("outbound redaction (ported from Iva)", () => {
   it("redacts keys, bot tokens, env lines and URL passwords", () => {
     const r = redactOutbound(
-      "key sk-ant-api03-abcdefghijklmnopqrstuvwxyz123456 bot 123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsawQ db postgres://pulse:secretpw@db:5432/pulse\nSESSION_SECRET=abc",
+      "key sk-ant-api03-abcdefghijklmnopqrstuvwxyz123456 bot 123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsawQ db postgres://victor:secretpw@db:5432/app\nSESSION_SECRET=abc",
     );
     expect(r.clean).toBe(false);
     expect(r.text).not.toMatch(/sk-ant-api03/);

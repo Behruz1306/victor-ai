@@ -1,11 +1,11 @@
 # Architecture
 
-Pulse is one repository with two processes sharing one Postgres database:
+Victor AI is one repository with two processes sharing one Postgres database:
 
 - **web** — Next.js 15 (App Router). Screens for Dispatcher, Team lead, Owner, Playbook, Sources,
   Settings, Demo control. Route handlers under `/api` for every mutation. All reads and writes go
   through the RBAC `guard()` and are scoped by `company_id`.
-- **worker** — plain Node process (`src/worker/index.ts`). Runs the Telegram long-polling bridge
+- **worker** — plain Node process (`src/worker/main.ts`). Runs the Telegram long-polling bridge
   (grammY), the job runner (`jobs` table, `FOR UPDATE SKIP LOCKED`) and the scheduler (SLA engine
   every 30 s, retention cleanup daily, demo replay ticks).
 

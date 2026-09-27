@@ -54,7 +54,7 @@ export type CompanySettings = {
 };
 
 export const DEFAULT_CONSENT_TEXT =
-  "This chat is monitored by an AI assistant to make sure your requests are handled on time.";
+  "This chat is monitored by Victor AI, an AI assistant that helps our team handle your requests on time. A person reviews every message before it is sent.";
 
 export type UsedContext = {
   /** Message ids from the timeline that informed the suggestion. */

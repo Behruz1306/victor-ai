@@ -100,7 +100,7 @@ describe("Apex scenario with the mock provider (raw messages → pipeline)", () 
     const s = await openSignals("rude_tone");
     expect(s).toHaveLength(1);
     expect(s[0]!.text).toMatch(/Stop spamming/);
-    const [timur] = await db.select().from(users).where(eq(users.email, "timur@demo.pulse"));
+    const [timur] = await db.select().from(users).where(eq(users.email, "timur@demo.victor.ai"));
     expect(s[0]!.s.responsibleUserId).toBe(timur!.id);
   });
 

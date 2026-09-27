@@ -109,7 +109,7 @@ export function Timeline({
                       {m.userName ?? m.sender}
                     </span>
                     {m.untrusted ? <UntrustedBadge /> : null}
-                    {m.viaPulse ? (
+                    {m.viaVictor ? (
                       <Badge tone="primary">
                         <Send /> {t("disp.sentVia")}
                       </Badge>

@@ -1,10 +1,10 @@
 import { defineConfig } from "vitest/config";
 import path from "node:path";
 
-// Integration tests use a separate database (pulse_test) on the same server; it is created
+// Integration tests use a separate database (victor_test) on the same server; it is created
 // and migrated by tests/global-setup.ts.
 const TEST_DB =
-  process.env.TEST_DATABASE_URL ?? "postgres://pulse:pulse@localhost:5433/pulse_test";
+  process.env.TEST_DATABASE_URL ?? "postgres://pulse:pulse@localhost:5433/victor_test";
 
 export default defineConfig({
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },

@@ -64,12 +64,12 @@ export async function telegramSend(db: Db, p: TelegramSendPayload): Promise<void
       channelExternalId: ch.externalId,
       channelTitle: ch.title,
       messageExternalId: String(lastId),
-      senderExternalId: `bot:${p.userId ?? "pulse"}`,
-      senderName: u ? `${u.name} (via Pulse bot)` : "Pulse bot",
+      senderExternalId: `bot:${p.userId ?? "victor"}`,
+      senderName: u ? `${u.name} (via Victor AI bot)` : "Victor AI bot",
       senderIsBot: true,
       text: redacted.text,
       sentAt: new Date(),
-      raw: { viaPulse: true, suggestionId: p.suggestionId ?? null },
+      raw: { viaVictor: true, suggestionId: p.suggestionId ?? null },
     });
   }
   if (p.suggestionId) {

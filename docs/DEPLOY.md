@@ -1,7 +1,7 @@
 # Deploy
 
-Pulse runs anywhere that runs Docker containers: **Postgres 16 + pgvector**, a **web** process
-(Next.js, port 3000) and a **worker** process (Telegram long polling, job queue, SLA loop).
+Victor AI runs anywhere that runs Docker containers: **Postgres 16 + pgvector**, a **web** process
+(Next.js, port 3001) and a **worker** process (Telegram long polling, job queue, SLA loop).
 Nothing needs a public webhook: the bot uses long polling.
 
 The `Dockerfile` has three targets:
@@ -40,33 +40,34 @@ curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER && newgrp docker
 
 # 2. Code + config
-git clone <your-repo-url> pulse && cd pulse
+git clone <your-repo-url> victor-ai && cd victor-ai
 cp env.example .env
 sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -hex 32)|" .env
-sed -i "s|^APP_URL=.*|APP_URL=https://pulse.example.com|" .env
+sed -i "s|^APP_URL=.*|APP_URL=https://victor.example.com|" .env
 echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
 nano .env        # ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN, DEMO_MODE=false for production
 
 # 3. Start (migrations run automatically in the worker container)
 docker compose up -d --build
 docker compose ps                     # db, worker, web → healthy
-curl -s localhost:3000/api/health     # {"ok":true,"db":"up",...}
+curl -s localhost:3001/api/health     # {"ok":true,"db":"up",...}
 
 # 4. Logs / updates
 docker compose logs -f worker
 git pull && docker compose up -d --build
 ```
 
-HTTPS: put a reverse proxy in front of port 3000, e.g. Caddy:
+HTTPS: put a reverse proxy in front of port 3001, e.g. Caddy:
 
 ```bash
 sudo apt install -y caddy
-echo 'pulse.example.com { reverse_proxy 127.0.0.1:3000 }' | sudo tee /etc/caddy/Caddyfile
+echo 'victor.example.com { reverse_proxy 127.0.0.1:3001 }' | sudo tee /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
 
 Postgres is published only on `127.0.0.1:5433` (not to the internet). Backups:
-`docker compose exec db pg_dump -U pulse pulse | gzip > pulse-$(date +%F).sql.gz`.
+`docker compose exec db pg_dump -U pulse pulse | gzip > victor-ai-$(date +%F).sql.gz`
+(the database user/name stay `pulse` — renaming them would orphan the existing volume).
 
 To use a **managed Postgres** instead of the bundled one, set `DATABASE_URL` in `.env`, remove the
 `db` service and the `depends_on: db` entries. The first migration runs
@@ -78,8 +79,8 @@ Create **one Postgres** and **two services from the same repository / Dockerfile
 
 | Service        | Start command                     | Port                     | Health check      |
 | -------------- | --------------------------------- | ------------------------ | ----------------- |
-| `pulse-worker` | `./worker-entrypoint.sh`          | none (background worker) | —                 |
-| `pulse-web`    | _(default)_ `./web-entrypoint.sh` | 3000 (HTTP)              | `GET /api/health` |
+| `victor-worker` | `./worker-entrypoint.sh`          | none (background worker) | —                 |
+| `victor-web`    | _(default)_ `./web-entrypoint.sh` | 3001 (HTTP)              | `GET /api/health` |
 
 Set on **both** services: `DATABASE_URL` (from the provider's Postgres), `SESSION_SECRET`,
 `APP_URL`, `ANTHROPIC_API_KEY` (optional), `TELEGRAM_BOT_TOKEN` (optional), `DEMO_MODE`.
@@ -94,25 +95,25 @@ instead (smaller images, same commands as in compose).
 ## (c) Local demo laptop (fallback, works offline)
 
 ```bash
-cd pulse
+cd victor-ai
 cp env.example .env                      # leave ANTHROPIC_API_KEY empty → mock provider, no internet needed
 docker compose up -d db                  # Postgres on localhost:5433
 pnpm install
 pnpm db:migrate
 pnpm seed                                # demo company + raw "yesterday" messages
-pnpm dev                                 # web on :3000 + worker
-open http://localhost:3000/login         # Enter as Owner / Team lead / Dispatcher
+pnpm dev                                 # web on :3001 + worker
+open http://localhost:3001/login         # Enter as Owner / Team lead / Dispatcher
 ```
 
-Everything in Docker instead: `docker compose up -d --build` → http://localhost:3000.
+Everything in Docker instead: `docker compose up -d --build` → http://localhost:3001.
 
 If the venue has no internet, the mock provider keeps the whole golden path working
 (`LLM_PROVIDER=mock` forces it even with a key set). See `docs/DEMO_SCRIPT.md` → «План Б».
 
 ## Telegram bot
 
-1. In Telegram open **@BotFather** → `/newbot` → name (`Blue Ridge Pulse`) → username ending in `bot`
-   (`blueridge_pulse_bot`). Copy the token into `.env` as `TELEGRAM_BOT_TOKEN=...`.
+1. In Telegram open **@BotFather** → `/newbot` → name (`Victor AI`) → username ending in `bot`
+   (the demo uses `@victorai5_bot`). Copy the token into `.env` as `TELEGRAM_BOT_TOKEN=...`.
 2. **Disable group privacy** so the bot receives every group message, not only commands:
    `/setprivacy` → choose the bot → **Disable**. (Settings → Telegram shows "Reads all group
    messages: Yes" when this is right. If you change it after adding the bot, remove and re-add the
@@ -121,9 +122,9 @@ If the venue has no internet, the mock provider keeps the whole golden path work
    Telegram app of the business account: **Settings → Telegram Business → Chatbots** → add the bot.
    Set `TELEGRAM_BUSINESS_ENABLED=true`.
 4. Restart the worker (`docker compose restart worker` or `pnpm dev:worker`). Its log prints
-   `[telegram] long polling as @blueridge_pulse_bot`.
+   `[telegram] long polling as @victorai5_bot`.
 5. Add the bot to a work group (group → **Add members** → search the bot username).
-6. In Pulse: **Sources → Unmapped chats** — the group appears with an AI proposal. Pick the customer
+6. In Victor AI: **Sources → Unmapped chats** — the group appears with an AI proposal. Pick the customer
    and chat type → **Map**. From now on every message is analyzed.
 7. Optional: **Post consent notice** in Sources sends the monitoring notice into the group.
 

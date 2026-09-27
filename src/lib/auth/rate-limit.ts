@@ -32,8 +32,8 @@ export class RateLimiter {
   }
 }
 
-const globalLimiter = globalThis as unknown as { __pulseLoginLimiter?: RateLimiter };
-export const loginLimiter = (globalLimiter.__pulseLoginLimiter ??= new RateLimiter(
+const globalLimiter = globalThis as unknown as { __victorLoginLimiter?: RateLimiter };
+export const loginLimiter = (globalLimiter.__victorLoginLimiter ??= new RateLimiter(
   5,
   10 * 60 * 1000,
 ));

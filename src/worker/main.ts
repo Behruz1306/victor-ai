@@ -17,7 +17,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function heartbeat() {
   // File heartbeat for the container healthcheck; DB heartbeat for the Settings/Demo screens.
   try {
-    writeFileSync("/tmp/pulse-worker-heartbeat", new Date().toISOString());
+    writeFileSync("/tmp/victor-worker-heartbeat", new Date().toISOString());
   } catch {
     // read-only filesystem: the DB heartbeat still works
   }

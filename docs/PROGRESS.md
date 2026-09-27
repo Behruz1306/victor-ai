@@ -91,3 +91,48 @@ Tick items as they are finished. Blockers go to the bottom section.
 ## Blockers / notes
 - No `ANTHROPIC_API_KEY` / `TELEGRAM_BOT_TOKEN` in this environment → everything verified with the mock provider; the Telegram path is verified through the normalizer + ingestion integration test (a real group was not available). Real-model runs are untested here.
 - Dot-env files could not be written by the build session → template ships as `env.example`.
+
+# Polish (VICTOR_AI_PROMPT.md, branch `polish`)
+
+## Phase R — Rename to Victor AI
+- [x] `brand.ts` name/tagline/owner promise; UI, metadata, consent notice, bot texts, docs
+- [x] Demo accounts `@demo.victor.ai`; cookies `victor_*`; `package.json` name `victor-ai`
+- [x] Port 3001 everywhere (dev, start, Playwright, Docker, APP_URL, docs)
+- [x] Leftover "pulse" strings listed in DECISIONS.md
+- [x] Re-seed demo company, phase gate, commit `polish R`
+
+## Phase A — Real AI and live Telegram
+- [ ] A1 provider chain Cerebras → Gemini → mock, `/models` listing in EVAL.md, failover, token buckets, demo cache, JSON-mode repair, Settings usage per provider
+- [ ] A2 `pnpm eval` harness + model choice + up to 3 improvement rounds → docs/EVAL.md
+- [ ] A3 structured-output robustness + recorded real fixture unit test
+- [ ] A4 live Telegram: poller lock, getMe/getUpdates health, "Bot online · last update Xs ago", Update-JSON integration test
+- [ ] A5 mock: 30+ new EN/RU trucking phrasings + tests
+- [ ] Phase gate + commit
+
+## Phase B — Known issues
+- [ ] B1 reply_needed per open customer question (task-level) + tests
+- [ ] B2 demo-aware KPI window
+- [ ] B3 worker re-seeds stale demo (>12 h) on start
+- [ ] B4 CSP nonces (no 'unsafe-inline' for scripts) + Playwright console check
+- [ ] B5 login rate limit in Postgres
+- [ ] B6 `.env.example` alongside `env.example`
+- [ ] Phase gate + commit
+
+## Phase C — Design overhaul
+- [x] C0 before screenshots (taken during phase R: old design, new name)
+- [ ] C1 docs/DESIGN.md
+- [ ] C2 tokens (type, color, contrast test, space, motion)
+- [ ] C3 components (SeverityBadge, StatusStepper, KpiTile, EvidenceQuote, ChatTypeChip, SuggestionCard, Avatar, EmptyState, skeletons, sonner, ⌘K)
+- [ ] C4 screens: shell, dispatcher, learning moment, task card, owner, lead, playbook, sources, login, demo room
+- [ ] C5 brand mark, favicons, OG image
+- [ ] C6 landing page
+- [ ] C7 screenshot quality pass (light/dark, 1440/1280/390) + axe
+- [ ] Phase gate + commit
+
+## Phase D — Bulletproof demo
+- [ ] D1 `pnpm demo:check`
+- [ ] D2 offline-mode switch at runtime
+- [ ] D3 DEMO_SCRIPT.md (RU) for the new UI
+- [ ] D4 clean `docker compose up --build`, e2e golden path
+- [ ] B7 (stretch) IMAP connector
+- [ ] Final report

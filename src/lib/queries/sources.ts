@@ -67,6 +67,6 @@ export async function channelMessages(db: Db, companyId: string, channelId: stri
     userName: r.userName,
     untrusted: r.m.untrustedFlag,
     lang: r.m.lang,
-    viaPulse: Boolean((r.m.raw as { viaPulse?: boolean } | null)?.viaPulse),
+    viaVictor: Boolean((r.m.raw as { viaVictor?: boolean } | null)?.viaVictor),
   }));
 }

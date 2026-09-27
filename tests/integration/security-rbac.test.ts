@@ -41,8 +41,8 @@ const { POST: settingsPOST } = await import("@/app/api/settings/route");
 
 const NOW = new Date("2026-09-26T15:00:00Z");
 const db = getDb();
-const BASE = "http://localhost:3000";
-const ORIGIN = { origin: BASE, host: "localhost:3000" };
+const BASE = "http://localhost:3001";
+const ORIGIN = { origin: BASE, host: "localhost:3001" };
 
 let A = { companyId: "", owner: "", timur: "", aziz: "", summit: "", apex: "" };
 let B = { companyId: "", owner: "", customer: "", channel: "" };
@@ -78,8 +78,8 @@ beforeAll(async () => {
   A = {
     companyId,
     owner: us.find((u) => u.role === "owner")!.id,
-    timur: us.find((u) => u.email === "timur@demo.pulse")!.id,
-    aziz: us.find((u) => u.email === "aziz@demo.pulse")!.id,
+    timur: us.find((u) => u.email === "timur@demo.victor.ai")!.id,
+    aziz: us.find((u) => u.email === "aziz@demo.victor.ai")!.id,
     summit: cs.find((c) => c.name === "Summit Brokerage")!.id,
     apex: cs.find((c) => c.name === "Apex Logistics")!.id,
   };
@@ -176,7 +176,7 @@ describe("RBAC (server-side guard on every handler)", () => {
   });
 
   it("lead can open the lead screen but not owner settings", async () => {
-    const [lead] = await db.select().from(users).where(eq(users.email, "lead@demo.pulse"));
+    const [lead] = await db.select().from(users).where(eq(users.email, "lead@demo.victor.ai"));
     await loginAs(lead!.id);
     expect((await leadGET(get("/api/lead"), params({}))).status).toBe(200);
     expect(
@@ -190,7 +190,7 @@ describe("RBAC (server-side guard on every handler)", () => {
       post(
         "/api/suggestions/00000000-0000-0000-0000-000000000000/approve",
         {},
-        { origin: "http://evil.test", host: "localhost:3000" },
+        { origin: "http://evil.test", host: "localhost:3001" },
       ),
       params({ id: "00000000-0000-0000-0000-000000000000" }),
     );

@@ -1,6 +1,6 @@
-# Pulse
+# Victor AI
 
-**We read your team's work chats for them and drive every customer task to completion.**
+**We read your team's chats for you and drive every customer task to completion.**
 AI control layer for customer work in Telegram chats, built for US trucking carriers and brokers.
 
 - Dispatcher: one screen with chats sorted by urgency, a merged cross-chat timeline and one suggested
@@ -17,7 +17,7 @@ raw chat messages only. Without API keys the deterministic **mock** provider run
 cp env.example .env
 docker compose up -d db
 pnpm install && pnpm db:migrate && pnpm seed
-pnpm dev                     # http://localhost:3000/login → one-click demo logins
+pnpm dev                     # http://localhost:3001/login → one-click demo logins
 ```
 
 Everything in Docker: `docker compose up -d --build`.

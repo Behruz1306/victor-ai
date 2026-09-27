@@ -4,7 +4,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "node:path";
 
 export default async function setup() {
-  const url = process.env.TEST_DATABASE_URL ?? "postgres://pulse:pulse@localhost:5433/pulse_test";
+  const url = process.env.TEST_DATABASE_URL ?? "postgres://pulse:pulse@localhost:5433/victor_test";
   const target = new URL(url);
   const dbName = target.pathname.slice(1);
   const admin = new URL(url);

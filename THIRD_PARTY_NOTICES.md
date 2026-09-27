@@ -1,6 +1,6 @@
 # Third-party notices
 
-Pulse includes code adapted from the following project.
+Victor AI includes code adapted from the following project.
 
 ## iva-agent
 

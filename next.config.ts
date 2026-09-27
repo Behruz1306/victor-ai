@@ -17,6 +17,8 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // `pnpm dev` compiles into .next-dev, so `pnpm build` / e2e never clobber a running dev server.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   output: "standalone",
   poweredByHeader: false,
   typedRoutes: false,

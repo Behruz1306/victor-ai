@@ -42,12 +42,17 @@ export async function resetDemoData(db: Db, companyId: string): Promise<void> {
     .where(eq(channels.companyId, companyId));
 
   const staff = await db
-    .select({ id: users.id, email: users.email })
+    .select({ id: users.id, email: users.email, name: users.name })
     .from(users)
     .where(eq(users.companyId, companyId));
   for (const c of demoData.customers) {
-    const email = demoData.users.find((u) => u.key === c.assigned)?.email;
-    const userId = staff.find((u) => u.email === email)?.id ?? null;
+    const seedUser = demoData.users.find((u) => u.key === c.assigned);
+    // Email is the identity; the name keeps a company seeded under older demo emails working.
+    const userId =
+      (
+        staff.find((u) => u.email === seedUser?.email) ??
+        staff.find((u) => u.name === seedUser?.name)
+      )?.id ?? null;
     await db
       .update(customers)
       .set({ assignedUserId: userId, brief: "", briefUpdatedAt: null })

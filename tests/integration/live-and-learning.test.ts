@@ -34,7 +34,7 @@ beforeAll(async () => {
   const all = await db.select().from(customers).where(eq(customers.companyId, companyId));
   for (const c of all) await analyzeCustomer(db, companyId, c.id, NOW);
   apexId = all.find((c) => c.name === "Apex Logistics")!.id;
-  const [u] = await db.select().from(users).where(eq(users.email, "timur@demo.pulse"));
+  const [u] = await db.select().from(users).where(eq(users.email, "timur@demo.victor.ai"));
   timur = { userId: u!.id, companyId, role: "dispatcher", name: u!.name, email: u!.email };
 });
 
@@ -79,7 +79,7 @@ describe("golden path step 3: edit → learned rule → next suggestion follows 
     const [sent] = await db
       .select()
       .from(messages)
-      .where(eq(messages.externalId, `pulse-${eta!.id}`));
+      .where(eq(messages.externalId, `victor-${eta!.id}`));
     expect(sent!.text).toBe(edited);
 
     await analyzeCustomer(db, companyId, apexId, at(5));

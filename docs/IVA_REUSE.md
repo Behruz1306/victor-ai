@@ -2,7 +2,7 @@
 
 Source: https://github.com/smixs/iva-agent (MIT, © 2026 smixs), studied from a shallow clone in
 `reference/iva-agent` (gitignored). Iva is a single-user, self-hosted Telegram assistant on the
-`eve` agent framework, Node 24, SQLite and systemd. Pulse is multi-tenant with a web dashboard,
+`eve` agent framework, Node 24, SQLite and systemd. Victor AI is multi-tenant with a web dashboard,
 so we port ideas and pure functions, not the runtime.
 
 | Iva module | What it does | Decision |

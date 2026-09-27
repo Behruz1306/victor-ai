@@ -1,7 +1,7 @@
 // Dev helper: owner resets the demo, loads "yesterday", starts the live replay, then screenshots.
 import { chromium } from "@playwright/test";
 const [outDir] = process.argv.slice(2);
-const base = process.env.BASE_URL ?? "http://localhost:3000";
+const base = process.env.BASE_URL ?? "http://localhost:3001";
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
 const errors = [];

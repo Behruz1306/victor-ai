@@ -7,7 +7,8 @@ import { LogOut, Moon, Sun, Languages } from "lucide-react";
 import { useT } from "@/components/providers";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { TKey } from "@/lib/i18n";
+import { LANG_COOKIE, type TKey } from "@/lib/i18n";
+import { THEME_COOKIE } from "@/lib/brand";
 
 function setCookie(name: string, value: string) {
   document.cookie = `${name}=${value}; path=/; max-age=31536000; samesite=lax`;
@@ -49,7 +50,7 @@ export function LangToggle() {
       aria-label={t("shell.lang")}
       data-testid="lang-toggle"
       onClick={() => {
-        setCookie("pulse_lang", lang === "en" ? "ru" : "en");
+        setCookie(LANG_COOKIE, lang === "en" ? "ru" : "en");
         router.refresh();
       }}
     >
@@ -73,7 +74,7 @@ export function ThemeToggle() {
       onClick={() => {
         const next = !dark;
         document.documentElement.classList.toggle("dark", next);
-        setCookie("pulse_theme", next ? "dark" : "light");
+        setCookie(THEME_COOKIE, next ? "dark" : "light");
         setDark(next);
       }}
     >

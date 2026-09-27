@@ -1,7 +1,7 @@
 // Dev helper: lead generates a handoff for Timur → Aziz and screenshots the brief.
 import { chromium } from "@playwright/test";
 const [out] = process.argv.slice(2);
-const base = process.env.BASE_URL ?? "http://localhost:3000";
+const base = process.env.BASE_URL ?? "http://localhost:3001";
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 await page.goto(`${base}/login`);

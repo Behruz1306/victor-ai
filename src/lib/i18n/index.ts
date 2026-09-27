@@ -3,7 +3,7 @@ import { ru } from "./ru";
 import type { Lang } from "@/lib/types";
 
 export type { TKey };
-export const LANG_COOKIE = "pulse_lang";
+export const LANG_COOKIE = "victor_lang";
 export const DICTS = { en, ru } as const;
 
 export function t(lang: Lang, key: TKey, params?: Record<string, string | number>): string {

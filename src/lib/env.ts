@@ -84,7 +84,7 @@ export function readEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const retention = Number(raw.DATA_RETENTION_DAYS ?? "90");
   return {
     isProd,
-    appUrl: emptyToUndef(raw.APP_URL) ?? "http://localhost:3000",
+    appUrl: emptyToUndef(raw.APP_URL) ?? "http://localhost:3001",
     sessionSecret,
     demoMode: raw.DEMO_MODE,
     sendMode: raw.SEND_MODE === "bot" ? "bot" : "copy",

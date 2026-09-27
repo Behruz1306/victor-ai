@@ -59,8 +59,8 @@ describe("owner screen data", () => {
 
 describe("handoff brief", () => {
   it("builds a brief per chat and reassigns customers on confirm", async () => {
-    const [timur] = await db.select().from(users).where(eq(users.email, "timur@demo.pulse"));
-    const [aziz] = await db.select().from(users).where(eq(users.email, "aziz@demo.pulse"));
+    const [timur] = await db.select().from(users).where(eq(users.email, "timur@demo.victor.ai"));
+    const [aziz] = await db.select().from(users).where(eq(users.email, "aziz@demo.victor.ai"));
     const id = await createHandoff(db, companyId, timur!.id, aziz!.id, NOW);
     const [h] = await db.select().from(handoffs).where(eq(handoffs.id, id));
     expect(h!.status).toBe("draft");

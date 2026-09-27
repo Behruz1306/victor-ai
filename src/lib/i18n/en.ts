@@ -143,7 +143,7 @@ export const en = {
   "disp.approveRecord": "Approve",
   "disp.edit": "Edit",
   "disp.dismiss": "Dismiss",
-  "disp.reason": "Why did you change it? (optional, helps Pulse learn)",
+  "disp.reason": "Why did you change it? (optional, helps Victor AI learn)",
   "disp.reasonPh": "e.g. Apex wants ETA in CST and with the truck number",
   "disp.saveEdit": "Save & use",
   "disp.copied": "Copied. Paste it into the chat.",
@@ -166,7 +166,7 @@ export const en = {
   // task card
   "disp.allChatsFilter": "All chats",
   "disp.thisChatOnly": "Only this chat",
-  "disp.sentVia": "sent via Pulse",
+  "disp.sentVia": "sent via Victor AI",
   "disp.editing": "Edit the message",
   "disp.provider": "AI",
   "disp.crossChat": "from another chat",
@@ -206,7 +206,7 @@ export const en = {
   "owner.editCriteria": "Edit",
 
   // onboarding
-  "onb.title": "Tell Pulse what you care about",
+  "onb.title": "Tell Victor AI what you care about",
   "onb.subtitle":
     "Three questions. You don't need exact rules — I'll turn your answers into criteria you can edit.",
   "onb.q1": "What makes you open the chats today?",
@@ -251,7 +251,7 @@ export const en = {
 
   // playbook
   "pb.title": "Playbook",
-  "pb.subtitle": "Rules learned from your team's edits. No rules at start — Pulse learns them.",
+  "pb.subtitle": "Rules learned from your team's edits. No rules at start — Victor AI learns them.",
   "pb.scope.company": "Company-wide",
   "pb.scope.customer": "Customer",
   "pb.scope.chat_type": "Chat type",
@@ -265,7 +265,7 @@ export const en = {
   "pb.before": "Suggested",
   "pb.after": "Sent",
   "pb.reason": "Reason",
-  "pb.empty": "No rules yet. Edit a suggestion and say why — Pulse will learn a rule from it.",
+  "pb.empty": "No rules yet. Edit a suggestion and say why — Victor AI will learn a rule from it.",
   "pb.editRate": "Edit rate",
   "pb.editRateHint": "edited ÷ (approved + edited), last 30 days",
   "pb.chart": "Edit rate by day",
@@ -279,7 +279,7 @@ export const en = {
 
   // sources
   "src.title": "Sources",
-  "src.subtitle": "Every chat Pulse reads, and the raw messages exactly as they arrived.",
+  "src.subtitle": "Every chat Victor AI reads, and the raw messages exactly as they arrived.",
   "src.channels": "Channels",
   "src.unmapped": "Unmapped chats",
   "src.unmappedHint":
@@ -312,7 +312,7 @@ export const en = {
   "set.grace": "Deadline grace (min)",
   "set.silent": "Customer silent after (days)",
   "set.criteria": "Owner watch criteria",
-  "set.criteriaHint": "Plain language. Pulse routes matching signals to the owner.",
+  "set.criteriaHint": "Plain language. Victor AI routes matching signals to the owner.",
   "set.addCriterion": "Add criterion",
   "set.telegram": "Telegram",
   "set.bot": "Bot",

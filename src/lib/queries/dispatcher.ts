@@ -324,7 +324,7 @@ export async function customerDetail(db: Db, companyId: string, customerId: stri
       side: r.side ?? "unknown",
       userName: r.userName,
       untrusted: r.m.untrustedFlag,
-      viaPulse: Boolean((r.m.raw as { viaPulse?: boolean } | null)?.viaPulse),
+      viaVictor: Boolean((r.m.raw as { viaVictor?: boolean } | null)?.viaVictor),
     })),
     highlights,
     tasks: taskRows.map((t) => ({

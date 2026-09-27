@@ -41,15 +41,15 @@ describe("login rate limiter", () => {
 describe("same-origin check (CSRF)", () => {
   const h = (init: Record<string, string>) => new Headers(init);
   it("accepts same host", () => {
-    expect(isSameOrigin(h({ origin: "http://localhost:3000", host: "localhost:3000" }))).toBe(true);
+    expect(isSameOrigin(h({ origin: "http://localhost:3001", host: "localhost:3001" }))).toBe(true);
   });
   it("rejects foreign origin and cross-site fetch metadata", () => {
-    expect(isSameOrigin(h({ origin: "http://evil.com", host: "localhost:3000" }))).toBe(false);
+    expect(isSameOrigin(h({ origin: "http://evil.com", host: "localhost:3001" }))).toBe(false);
     expect(isSameOrigin(h({ "sec-fetch-site": "cross-site", host: "a" }))).toBe(false);
   });
   it("rejects requests without origin unless the browser says same-origin", () => {
-    expect(isSameOrigin(h({ host: "localhost:3000" }))).toBe(false);
-    expect(isSameOrigin(h({ host: "localhost:3000", "sec-fetch-site": "same-origin" }))).toBe(true);
+    expect(isSameOrigin(h({ host: "localhost:3001" }))).toBe(false);
+    expect(isSameOrigin(h({ host: "localhost:3001", "sec-fetch-site": "same-origin" }))).toBe(true);
   });
 });
 

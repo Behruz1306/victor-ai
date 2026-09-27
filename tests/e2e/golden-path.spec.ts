@@ -14,8 +14,8 @@ async function loginAs(
 ) {
   const ctx = await browser.newContext({ viewport: { width: opts.width ?? 1440, height: 900 } });
   await ctx.addCookies([
-    { name: "pulse_lang", value: opts.lang ?? "en", url: "http://localhost:3000" },
-    { name: "pulse_theme", value: opts.theme ?? "light", url: "http://localhost:3000" },
+    { name: "victor_lang", value: opts.lang ?? "en", url: "http://localhost:3001" },
+    { name: "victor_theme", value: opts.theme ?? "light", url: "http://localhost:3001" },
   ]);
   const page = await ctx.newPage();
   await page.goto("/login");

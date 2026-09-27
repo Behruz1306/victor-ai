@@ -135,7 +135,7 @@ export const ru: Dict = {
   "disp.approveRecord": "Подтвердить",
   "disp.edit": "Исправить",
   "disp.dismiss": "Отклонить",
-  "disp.reason": "Почему исправили? (необязательно, помогает Pulse учиться)",
+  "disp.reason": "Почему исправили? (необязательно, помогает Victor AI учиться)",
   "disp.reasonPh": "например: Apex хочет ETA в CST и с номером трака",
   "disp.saveEdit": "Сохранить и использовать",
   "disp.copied": "Скопировано. Вставьте в чат.",
@@ -157,7 +157,7 @@ export const ru: Dict = {
 
   "disp.allChatsFilter": "Все чаты",
   "disp.thisChatOnly": "Только этот чат",
-  "disp.sentVia": "отправлено через Pulse",
+  "disp.sentVia": "отправлено через Victor AI",
   "disp.editing": "Исправьте сообщение",
   "disp.provider": "AI",
   "disp.crossChat": "из другого чата",
@@ -237,7 +237,7 @@ export const ru: Dict = {
   "handoff.empty": "У этого диспетчера нет клиентов.",
 
   "pb.title": "Плейбук",
-  "pb.subtitle": "Правила, выученные на правках команды. На старте правил нет — Pulse учится.",
+  "pb.subtitle": "Правила, выученные на правках команды. На старте правил нет — Victor AI учится.",
   "pb.scope.company": "Вся компания",
   "pb.scope.customer": "Клиент",
   "pb.scope.chat_type": "Тип чата",
@@ -251,7 +251,7 @@ export const ru: Dict = {
   "pb.before": "Предложено",
   "pb.after": "Отправлено",
   "pb.reason": "Причина",
-  "pb.empty": "Правил пока нет. Исправьте подсказку и объясните почему — Pulse выучит правило.",
+  "pb.empty": "Правил пока нет. Исправьте подсказку и объясните почему — Victor AI выучит правило.",
   "pb.editRate": "Доля правок",
   "pb.editRateHint": "исправлено ÷ (подтверждено + исправлено), 30 дней",
   "pb.chart": "Доля правок по дням",
@@ -264,7 +264,7 @@ export const ru: Dict = {
   "pb.rules": "Правила",
 
   "src.title": "Источники",
-  "src.subtitle": "Все чаты, которые читает Pulse, и сырые сообщения в том виде, как пришли.",
+  "src.subtitle": "Все чаты, которые читает Victor AI, и сырые сообщения в том виде, как пришли.",
   "src.channels": "Каналы",
   "src.unmapped": "Непривязанные чаты",
   "src.unmappedHint":
@@ -296,7 +296,7 @@ export const ru: Dict = {
   "set.grace": "Допуск по сроку (мин)",
   "set.silent": "Клиент молчит дольше (дней)",
   "set.criteria": "Критерии собственника",
-  "set.criteriaHint": "Обычными словами. Подходящие сигналы Pulse покажет собственнику.",
+  "set.criteriaHint": "Обычными словами. Подходящие сигналы Victor AI покажет собственнику.",
   "set.addCriterion": "Добавить критерий",
   "set.telegram": "Telegram",
   "set.bot": "Бот",

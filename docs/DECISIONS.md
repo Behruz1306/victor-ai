@@ -17,7 +17,7 @@ One line per decision: what and why.
 - `eta_not_forwarded` is emitted by the analyzer as a quality flag pointing at the internal/fleet ETA message, then kept only if timestamps confirm no later employee message to the customer carries an ETA (code check).
 - Signal `audience` stores the highest audience reached (owner ⊃ lead ⊃ dispatcher); dispatchers see every signal for their customers regardless.
 - Owner KPI "avg acknowledgment time" uses a rolling 24 h window instead of calendar "today", because the demo scenario is "yesterday" relative to now.
-- Approving a suggestion on a `demo` channel records the message into that channel as sent by the dispatcher (labeled as sent via Pulse) so the pipeline reacts exactly as it would to a real Telegram send.
+- Approving a suggestion on a `demo` channel records the message into that channel as sent by the dispatcher (labeled as sent via Victor AI) so the pipeline reacts exactly as it would to a real Telegram send.
 - Bot sends go through a `telegram_send` job executed by the worker (single side-effect path, retries, redaction right before send); the web never talks to Telegram directly except the health check.
 - Fonts via the `geist` npm package (local files) instead of `next/font/google` — builds work offline and in Docker without Google access.
 - bcryptjs (pure JS) instead of argon2 — no native build step under pnpm/Docker.
@@ -40,3 +40,13 @@ One line per decision: what and why.
 - Dockerfile default target `app` contains web + worker for PaaS "two services from one image"; compose uses the slimmer `web`/`worker` targets.
 - Owner digest ranking adds a kind weight (complaint > rudeness > overdue > …) at equal severity, so relationship damage surfaces first.
 - pgvector is enabled (first migration) but unused in the MVP — no embedding provider without extra keys; rule similarity uses token Jaccard.
+
+## Polish (Victor AI)
+
+- Product renamed Pulse → **Victor AI** (`src/lib/brand.ts`). Intentional "pulse" leftovers: Postgres user/password/database `pulse` in `docker-compose.yml`, `env.example`, `drizzle.config.ts`, `src/lib/db/client.ts`, test URLs and DEPLOY backup command (renaming would orphan the existing `pulse_pgdata` volume); the Docker Compose project name (folder `pulse`); Tailwind's `animate-pulse` utility class; the historical specs `BUILD_PROMPT.md` / `POLISH_PROMPT.md` / `VICTOR_AI_PROMPT.md`.
+- Cookies renamed `pulse_*` → `victor_*` (`victor_session`, `victor_lang`, `victor_theme`); everyone simply signs in again.
+- Integration-test database renamed `pulse_test` → `victor_test` (created by the test global setup; the old one is harmless).
+- App port is 3001 everywhere, including inside the container (`PORT=3001`), so nothing in the repo points at 3000 (reserved for another project on the presenter laptop).
+- `pnpm dev` compiles into `.next-dev` (`NEXT_DIST_DIR`), production builds into `.next`: `pnpm build` / e2e never clobber a running dev server (a stale dev server from the previous session is still bound to :3000 and must not be stopped).
+- Worker entry moved `src/worker/index.ts` → `src/worker/main.ts`: a stale `tsx watch src/worker/index.ts` from the previous session shares a `concurrently -k` group with the :3000 server, so it cannot be stopped without stopping :3000; with the entry gone it can no longer hot-reload new code and compete for jobs or the Telegram long poll.
+- Messages recorded from approved suggestions use external id `victor-<suggestionId>` and `raw.viaVictor` (was `pulse-…` / `viaPulse`); the demo is re-seeded, so no migration of old rows.
