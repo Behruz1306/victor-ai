@@ -1,104 +1,56 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Moon, Sun, Languages } from "lucide-react";
-import { useT } from "@/components/providers";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Moon, Sun } from "lucide-react";
+import { useT, useTheme } from "@/components/providers";
+import { LANG_COOKIE } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { LANG_COOKIE, type TKey } from "@/lib/i18n";
-import { THEME_COOKIE } from "@/lib/brand";
 
-function setCookie(name: string, value: string) {
-  document.cookie = `${name}=${value}; path=/; max-age=31536000; samesite=lax`;
-}
-
-export function NavLinks({ items }: { items: { href: string; key: string }[] }) {
-  const pathname = usePathname();
-  const { t } = useT();
-  return (
-    <nav className="flex items-center gap-0.5 overflow-x-auto">
-      {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(item.href + "/");
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "rounded-md px-2.5 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors",
-              active
-                ? "bg-primary-soft text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            {t(item.key as TKey)}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
-export function LangToggle() {
+/** EN / RU segmented switch (login and landing). */
+export function LangToggle({ className }: { className?: string }) {
   const { lang, t } = useT();
   const router = useRouter();
+  const set = (next: "en" | "ru") => {
+    document.cookie = `${LANG_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    router.refresh();
+  };
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <div
+      role="group"
       aria-label={t("shell.lang")}
+      className={cn("flex h-8 items-center rounded-md border bg-surface p-0.5 text-xs font-medium", className)}
       data-testid="lang-toggle"
-      onClick={() => {
-        setCookie(LANG_COOKIE, lang === "en" ? "ru" : "en");
-        router.refresh();
-      }}
     >
-      <Languages />
-      <span className="text-xs font-semibold">{lang === "en" ? "EN" : "RU"}</span>
-    </Button>
+      {(["en", "ru"] as const).map((l) => (
+        <button
+          key={l}
+          onClick={() => set(l)}
+          aria-pressed={lang === l}
+          className={cn(
+            "h-full rounded px-2 uppercase transition-colors",
+            lang === l ? "bg-surface-2 text-fg" : "text-fg-3 hover:text-fg-2",
+          )}
+        >
+          {l}
+        </button>
+      ))}
+    </div>
   );
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { t } = useT();
-  const [dark, setDark] = React.useState(false);
-  React.useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+  const { theme, setTheme } = useTheme();
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
+      className={cn(
+        "grid size-8 place-items-center rounded-md border bg-surface text-fg-2 hover:bg-surface-2 hover:text-fg",
+        className,
+      )}
       aria-label={t("shell.theme")}
-      onClick={() => {
-        const next = !dark;
-        document.documentElement.classList.toggle("dark", next);
-        setCookie(THEME_COOKIE, next ? "dark" : "light");
-        setDark(next);
-      }}
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
-      {dark ? <Sun /> : <Moon />}
-    </Button>
-  );
-}
-
-export function LogoutButton() {
-  const { t } = useT();
-  const router = useRouter();
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label={t("shell.logout")}
-      title={t("shell.logout")}
-      onClick={async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
-        router.push("/login");
-        router.refresh();
-      }}
-    >
-      <LogOut />
-    </Button>
+      {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+    </button>
   );
 }

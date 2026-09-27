@@ -44,13 +44,13 @@ export function EditRateChart({ daily }: { daily: DailyRate[] }) {
   const { t } = useT();
   const data = fillDays(daily, 14);
   return (
-    <div className="h-44 w-full" role="img" aria-label={t("pb.chart")}>
+    <div className="h-40 w-full" role="img" aria-label={t("pb.chart")}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="0" />
           <XAxis
             dataKey="label"
-            tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+            tick={{ fill: "var(--fg-3)", fontSize: 12, fontFamily: "var(--font-geist-mono)" }}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
@@ -60,13 +60,13 @@ export function EditRateChart({ daily }: { daily: DailyRate[] }) {
             domain={[0, 100]}
             ticks={[0, 50, 100]}
             tickFormatter={(v: number) => `${v}%`}
-            tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+            tick={{ fill: "var(--fg-3)", fontSize: 12, fontFamily: "var(--font-geist-mono)" }}
             axisLine={false}
             tickLine={false}
             width={44}
           />
           <Tooltip
-            cursor={{ stroke: "var(--muted-foreground)", strokeWidth: 1, strokeDasharray: "3 3" }}
+            cursor={{ stroke: "var(--border-strong)", strokeWidth: 1 }}
             content={({ active, payload }) => {
               const p =
                 active && payload?.[0]
@@ -74,9 +74,9 @@ export function EditRateChart({ daily }: { daily: DailyRate[] }) {
                   : null;
               if (!p) return null;
               return (
-                <div className="rounded-md border bg-card px-2.5 py-1.5 text-xs shadow-md">
-                  <div className="font-medium">{p.day}</div>
-                  <div className="text-muted-foreground">
+                <div className="rounded-md border bg-surface px-2.5 py-1.5 text-xs shadow-pop">
+                  <div className="num font-mono font-medium text-fg">{p.day}</div>
+                  <div className="text-fg-3">
                     {p.rate == null
                       ? t("pb.noDecisions")
                       : `${t("pb.editRate")}: ${p.rate}% · ${p.edited}/${p.approved + p.edited}`}
@@ -88,10 +88,10 @@ export function EditRateChart({ daily }: { daily: DailyRate[] }) {
           <Line
             type="monotone"
             dataKey="rate"
-            stroke="var(--primary)"
+            stroke="var(--accent)"
             strokeWidth={2}
-            dot={{ r: 4, strokeWidth: 2, stroke: "var(--card)", fill: "var(--primary)" }}
-            activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--card)" }}
+            dot={{ r: 3.5, strokeWidth: 2, stroke: "var(--surface)", fill: "var(--accent)" }}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--surface)", fill: "var(--accent)" }}
             connectNulls
             isAnimationActive={false}
           />

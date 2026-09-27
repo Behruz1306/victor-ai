@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { companies, digests, messages, signals, tasks } from "@/lib/db/schema";
+import { channels, companies, digests, messages, participants, signals, tasks } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { localParts, zonedToUtc } from "@/lib/time";
 import { generateOwnerDigest } from "@/lib/pipeline/digest";
@@ -46,6 +46,7 @@ export async function ownerKpis(db: Db, companyId: string, now = new Date()) {
       ackAt: r.ack_at ? new Date(r.ack_at) : null,
     })),
   );
+  const trend = await kpiTrend(db, companyId, window.from, now, { open: open.length, atRisk });
   return {
     openTasks: open.length,
     atRisk,
@@ -53,6 +54,86 @@ export async function ownerKpis(db: Db, companyId: string, now = new Date()) {
     ackSample: ack.count,
     requests24h: rows.length,
     window: { from: window.from.toISOString(), kind: window.kind },
+    trend,
+  };
+}
+
+const POINTS = 12;
+
+/**
+ * Sparklines and deltas from real history: open tasks (task events), tasks at risk (high/critical
+ * signals open at each moment) and acknowledgment time per interval. Nothing is interpolated
+ * except carrying the last ack value across empty intervals.
+ */
+export async function kpiTrend(
+  db: Db,
+  companyId: string,
+  from: Date,
+  now: Date,
+  current: { open: number; atRisk: number },
+) {
+  const span = Math.max(now.getTime() - from.getTime(), 3_600_000);
+  const at = (i: number) => new Date(from.getTime() + (span * (i + 1)) / POINTS);
+  const dayAgo = new Date(now.getTime() - 24 * 3_600_000);
+
+  const ev = await db.execute<{ task_id: string; to_status: string; at: Date }>(sql`
+    select task_id, to_status, at from task_events
+    where company_id = ${companyId} and to_status in ('received','delivered','cancelled')`);
+  const opened = ev.filter((e) => e.to_status === "received").map((e) => new Date(e.at).getTime());
+  const closed = ev.filter((e) => e.to_status !== "received").map((e) => new Date(e.at).getTime());
+  const openAt = (t: Date) =>
+    opened.filter((x) => x <= t.getTime()).length - closed.filter((x) => x <= t.getTime()).length;
+
+  // Same definition as the tile: tasks with a high/critical signal open at that moment.
+  const sig = await db
+    .select({ taskId: signals.taskId, createdAt: signals.createdAt, resolvedAt: signals.resolvedAt })
+    .from(signals)
+    .where(and(eq(signals.companyId, companyId), gte(signals.severity, 4)));
+  const riskAt = (t: Date) =>
+    new Set(
+      sig
+        .filter((s) => s.taskId && s.createdAt <= t && (!s.resolvedAt || s.resolvedAt > t))
+        .map((s) => s.taskId),
+    ).size;
+
+  const acks = await db.execute<{ received_at: Date; ack_at: Date | null }>(sql`
+    select r.at as received_at,
+      (select min(a.at) from task_events a where a.task_id = r.task_id and a.to_status = 'acknowledged') as ack_at
+    from task_events r
+    where r.company_id = ${companyId} and r.to_status = 'received'
+      and r.at >= ${new Date(from.getTime() - span).toISOString()}`);
+  const pairs = acks
+    .filter((a) => a.ack_at)
+    .map((a) => ({ r: new Date(a.received_at).getTime(), m: (new Date(a.ack_at!).getTime() - new Date(a.received_at).getTime()) / 60000 }));
+  const avg = (lo: number, hi: number) => {
+    const xs = pairs.filter((p) => p.r > lo && p.r <= hi).map((p) => p.m);
+    return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+  };
+  const ackSeries: number[] = [];
+  let carry: number | null = null;
+  let real = 0;
+  for (let i = 0; i < POINTS; i++) {
+    const v = avg(at(i - 1).getTime(), at(i).getTime());
+    if (v !== null) {
+      carry = v;
+      real++;
+    }
+    if (carry !== null) ackSeries.push(Math.round(carry));
+  }
+  const ackNow = avg(from.getTime(), now.getTime());
+  const ackPrev = avg(from.getTime() - span, from.getTime());
+
+  return {
+    points: POINTS,
+    // The last point is the value on the tile.
+    open: [...Array.from({ length: POINTS - 1 }, (_, i) => openAt(at(i))), current.open],
+    risk: [...Array.from({ length: POINTS - 1 }, (_, i) => riskAt(at(i))), current.atRisk],
+    ack: real >= 2 ? ackSeries : [],
+    delta: {
+      open: dayAgo > from ? current.open - openAt(dayAgo) : null,
+      risk: dayAgo > from ? current.atRisk - riskAt(dayAgo) : null,
+      ack: ackNow !== null && ackPrev !== null ? Math.round(ackNow - ackPrev) : null,
+    },
   };
 }
 
@@ -82,6 +163,13 @@ export async function kpiWindow(
   const dayStart = zonedToUtc(p.y, p.m, p.d, 0, 0, company.tz);
   return dayStart < rolling.from ? { from: dayStart, kind: "demoScenario" } : rolling;
 }
+
+type DigestEvidence = {
+  sentAt: Date;
+  chatTitle: string;
+  chatType: string | null;
+  sender: string | null;
+};
 
 /** Latest owner digest, minus items whose signal is no longer open. Generates one if missing. */
 export async function ownerDigest(db: Db, companyId: string) {
@@ -113,7 +201,7 @@ export async function ownerDigest(db: Db, companyId: string) {
         .limit(1);
     }
   }
-  if (!latest) return { items: [] as DigestItem[], generatedAt: null };
+  if (!latest) return { items: [] as (DigestItem & { evidence: DigestEvidence | null })[], generatedAt: null };
   const ids = latest.items.map((i) => i.signalId);
   const stillOpen = ids.length
     ? await db
@@ -128,8 +216,33 @@ export async function ownerDigest(db: Db, companyId: string) {
         )
     : [];
   const open = new Set(stillOpen.map((s) => s.id));
+  const items = latest.items.filter((i) => open.has(i.signalId)).slice(0, 5);
+  // Where the evidence was said: chat, sender, time.
+  const ev = items.length
+    ? await db
+        .select({
+          signalId: signals.id,
+          sentAt: messages.sentAt,
+          chatTitle: channels.title,
+          chatType: channels.chatType,
+          sender: participants.displayName,
+        })
+        .from(signals)
+        .innerJoin(messages, eq(messages.id, signals.evidenceMessageId))
+        .innerJoin(channels, eq(channels.id, messages.channelId))
+        .leftJoin(participants, eq(participants.id, messages.participantId))
+        .where(inArray(signals.id, items.map((i) => i.signalId)))
+    : [];
   return {
-    items: latest.items.filter((i) => open.has(i.signalId)).slice(0, 5),
+    items: items.map((i) => {
+      const e = ev.find((x) => x.signalId === i.signalId);
+      return {
+        ...i,
+        evidence: e
+          ? { sentAt: e.sentAt, chatTitle: e.chatTitle, chatType: e.chatType, sender: e.sender }
+          : null,
+      };
+    }),
     generatedAt: latest.generatedAt,
   };
 }

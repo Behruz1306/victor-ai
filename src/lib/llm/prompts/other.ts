@@ -7,7 +7,7 @@ import type {
 } from "@/lib/pipeline/types";
 import { BILINGUAL_RULE, SECURITY_RULES, fmtStamp, renderMessage } from "./common";
 
-export const DIGEST_INSTRUCTIONS = `You write the owner's digest for a trucking company. The owner does not read chats. You receive at most 5 signals that code already selected and ranked. For EACH signal write: a short title (≤10 words), what happened (1-2 sentences, concrete: customer, load, times), and why it matters to the business (1 sentence: lost load, broker relationship, cash, SLA). Plain language, no jargon beyond trucking terms the owner knows. Do not add, drop or reorder items; use the given signal_id.
+export const DIGEST_INSTRUCTIONS = `You write the owner's digest for a trucking company. The owner does not read chats. You receive at most 5 signals that code already selected and ranked. For EACH signal write: a short title (≤10 words), what happened (1-2 sentences in your own words, concrete: customer, load, times — do NOT paste the evidence quote, the screen shows it right below), and why it matters to the business (1 sentence: lost load, broker relationship, cash, SLA). Plain language, no jargon beyond trucking terms the owner knows. Do not add, drop or reorder items; use the given signal_id.
 
 ${BILINGUAL_RULE}
 

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { getLang } from "@/lib/i18n/server";
 import { t } from "@/lib/i18n";
+import { LogoMark } from "@/components/brand";
+import { EmptyIllustration } from "@/components/empty-state";
 
 export default async function NotFound() {
   const lang = await getLang();
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
-      <p className="text-4xl font-semibold text-muted-foreground">404</p>
-      <p className="text-sm text-muted-foreground">{t(lang, "common.notFound")}</p>
-      <Link href="/" className="text-sm text-primary hover:underline">
-        {t(lang, "common.back")}
+    <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-bg px-6 text-center">
+      <LogoMark size={32} />
+      <EmptyIllustration kind="search" />
+      <div>
+        <p className="num font-mono text-sm text-fg-3">404</p>
+        <p className="mt-1 text-xl font-semibold text-fg">{t(lang, "common.notFound")}</p>
+      </div>
+      <Link href="/" className="text-base font-medium text-accent-text hover:underline">
+        {t(lang, "common.home")}
       </Link>
     </div>
   );

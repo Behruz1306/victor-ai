@@ -7,7 +7,8 @@ import { LeadView } from "./lead-view";
 
 export const metadata = { title: "Team lead" };
 
-export default async function LeadPage() {
+export default async function LeadPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
+  const { u } = await searchParams;
   const ctx = await requirePage("view:lead");
   const staff = await getDb()
     .select({ id: users.id, name: users.name, role: users.role })
@@ -20,5 +21,11 @@ export default async function LeadPage() {
       ),
     )
     .orderBy(asc(users.name));
-  return <LeadView canHandoff={can(ctx.role, "manage:handoff")} staff={staff} />;
+  return (
+    <LeadView
+      canHandoff={can(ctx.role, "manage:handoff")}
+      staff={staff}
+      initialUser={u && /^[0-9a-f-]{36}$/i.test(u) ? u : null}
+    />
+  );
 }

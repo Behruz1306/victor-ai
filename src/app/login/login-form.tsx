@@ -2,10 +2,24 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Headset, UsersRound, Crown } from "lucide-react";
+import { Headset, UsersRound, Gauge, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, Input, Label } from "@/components/ui/primitives";
+import { Input, Label } from "@/components/ui/primitives";
 import { useT } from "@/components/providers";
+import { Avatar } from "@/components/common";
+import { cn } from "@/lib/utils";
+
+const ROLES = [
+  { role: "owner", name: "Rustam", icon: Gauge, key: "login.asOwner", hint: "login.ownerHint" },
+  { role: "lead", name: "Dilnoza", icon: UsersRound, key: "login.asLead", hint: "login.leadHint" },
+  {
+    role: "dispatcher",
+    name: "Timur",
+    icon: Headset,
+    key: "login.asDispatcher",
+    hint: "login.dispatcherHint",
+  },
+] as const;
 
 export function LoginForm({ demoMode }: { demoMode: boolean }) {
   const { t } = useT();
@@ -13,10 +27,10 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
-  const [busy, setBusy] = React.useState(false);
+  const [busy, setBusy] = React.useState<string | null>(null);
 
-  async function submit(url: string, body: unknown) {
-    setBusy(true);
+  async function submit(url: string, body: unknown, key: string) {
+    setBusy(key);
     setError(null);
     try {
       const res = await fetch(url, {
@@ -32,86 +46,99 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
     } catch {
       setError(t("common.error"));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardContent className="pt-4">
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void submit("/api/auth/login", { email, password });
-            }}
-          >
-            <h1 className="text-base font-semibold">{t("login.title")}</h1>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="email">{t("login.email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="password">{t("login.password")}</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {error ? (
-              <p role="alert" className="text-sm text-sev-5">
-                {error}
-              </p>
-            ) : null}
-            <Button type="submit" disabled={busy}>
-              {t("login.submit")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="flex flex-col gap-6">
       {demoMode ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("login.demo")}</p>
-          <div className="grid gap-2">
-            <Button
-              variant="outline"
-              disabled={busy}
-              data-testid="demo-login-dispatcher"
-              onClick={() => submit("/api/auth/demo-login", { role: "dispatcher" })}
-            >
-              <Headset /> {t("login.asDispatcher")} · Timur
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              data-testid="demo-login-lead"
-              onClick={() => submit("/api/auth/demo-login", { role: "lead" })}
-            >
-              <UsersRound /> {t("login.asLead")} · Dilnoza
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              data-testid="demo-login-owner"
-              onClick={() => submit("/api/auth/demo-login", { role: "owner" })}
-            >
-              <Crown /> {t("login.asOwner")} · Rustam
-            </Button>
+        <section className="flex flex-col gap-2" aria-label={t("login.demo")}>
+          <p className="text-sm font-medium text-fg-2">{t("login.demo")}</p>
+          <div className="flex flex-col overflow-hidden rounded-lg border bg-surface">
+            {ROLES.map((r) => (
+              <button
+                key={r.role}
+                disabled={Boolean(busy)}
+                data-testid={`demo-login-${r.role}`}
+                onClick={() => submit("/api/auth/demo-login", { role: r.role }, r.role)}
+                className={cn(
+                  "group flex items-center gap-3 border-b px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-surface-2 disabled:opacity-60",
+                )}
+              >
+                <Avatar name={r.name} size={36} />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-base font-medium text-fg">
+                    <r.icon className="size-4 text-fg-3" aria-hidden /> {t(r.key)}
+                    <span className="font-normal text-fg-3">· {r.name}</span>
+                  </span>
+                  <span className="block text-sm text-fg-3">{t(r.hint)}</span>
+                </span>
+                {busy === r.role ? (
+                  <Loader2 className="size-4 animate-spin text-fg-3" aria-hidden />
+                ) : (
+                  <ArrowRight
+                    className="size-4 text-fg-3 transition-transform group-hover:translate-x-0.5 group-hover:text-accent-text"
+                    aria-hidden
+                  />
+                )}
+              </button>
+            ))}
           </div>
+        </section>
+      ) : null}
+
+      {demoMode ? (
+        <div className="flex items-center gap-3 text-xs text-fg-3">
+          <span className="h-px flex-1 bg-border" />
+          {t("login.orEmail")}
+          <span className="h-px flex-1 bg-border" />
         </div>
       ) : null}
+
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit("/api/auth/login", { email, password }, "form");
+        }}
+      >
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="email">{t("login.email")}</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="password">{t("login.password")}</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        {error ? (
+          <p role="alert" className="text-sm text-critical">
+            {error}
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          disabled={Boolean(busy)}
+          variant={demoMode ? "outline" : "default"}
+          className="mt-1"
+        >
+          {busy === "form" ? <Loader2 className="animate-spin" /> : null} {t("login.submit")}
+        </Button>
+      </form>
     </div>
   );
 }

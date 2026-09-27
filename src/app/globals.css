@@ -2,119 +2,308 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Design tokens — see docs/DESIGN.md. Components never use raw colors. */
 :root {
-  --background: #f6f7f9;
-  --foreground: #16181d;
-  --card: #ffffff;
-  --card-foreground: #16181d;
-  --muted: #eef0f3;
-  --muted-foreground: #5d6572;
-  --border: #e2e5ea;
-  --input: #d7dbe2;
-  --ring: #4f46e5;
-  --primary: #4338ca;
-  --primary-foreground: #ffffff;
-  --primary-soft: #eef0ff;
-  --sev-5: #b91c1c;
-  --sev-5-soft: #fdecec;
-  --sev-4: #c2410c;
-  --sev-4-soft: #fff1e6;
-  --sev-3: #a16207;
-  --sev-3-soft: #fdf6dc;
-  --sev-2: #0369a1;
-  --sev-2-soft: #e6f3fb;
-  --ok: #047857;
-  --ok-soft: #e3f6ee;
-  --chip-customer: #4338ca;
-  --chip-internal: #0e7490;
-  --chip-fleet: #7c3aed;
-  --chip-billing: #b45309;
-  --chip-support: #be185d;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --surface-3: #e9ecf1;
+  --border: #e3e6eb;
+  --border-strong: #cdd2da;
+  --fg: #0f1217;
+  --fg-2: #434a57;
+  --fg-3: #5f6776;
+  --accent: #4b42d6;
+  --accent-fg: #ffffff;
+  --accent-soft: #eeedfc;
+  --accent-text: #3d34c2;
+  --critical: #b42318;
+  --critical-soft: #fef1f0;
+  --critical-border: #fbc9c4;
+  --high: #b54708;
+  --high-soft: #fff4ea;
+  --high-border: #f9d1ae;
+  --medium: #8a5a00;
+  --medium-soft: #fef6dd;
+  --medium-border: #f1dc9c;
+  --low: #475467;
+  --low-soft: #f1f3f6;
+  --low-border: #d5dae2;
+  --ok: #067647;
+  --ok-soft: #eaf8f0;
+  --ok-border: #abe6c6;
+  --elev-pop: 0 12px 32px -8px rgb(15 18 23 / 0.18), 0 2px 6px rgb(15 18 23 / 0.06);
+  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: light;
 }
 
 .dark {
-  --background: #0f1115;
-  --foreground: #e7e9ee;
-  --card: #171a20;
-  --card-foreground: #e7e9ee;
-  --muted: #1f232b;
-  --muted-foreground: #9aa2b1;
-  --border: #2a2f39;
-  --input: #353b47;
-  --ring: #818cf8;
-  --primary: #818cf8;
-  --primary-foreground: #0f1115;
-  --primary-soft: #23264a;
-  --sev-5: #f87171;
-  --sev-5-soft: #3a1a1c;
-  --sev-4: #fb923c;
-  --sev-4-soft: #3a2415;
-  --sev-3: #facc15;
-  --sev-3-soft: #352d10;
-  --sev-2: #38bdf8;
-  --sev-2-soft: #10293a;
-  --ok: #34d399;
-  --ok-soft: #0f2e24;
-  --chip-customer: #a5b4fc;
-  --chip-internal: #67e8f9;
-  --chip-fleet: #c4b5fd;
-  --chip-billing: #fcd34d;
-  --chip-support: #f9a8d4;
+  --bg: #0b0d12;
+  --surface: #12151c;
+  --surface-2: #181c25;
+  --surface-3: #212632;
+  --border: #232834;
+  --border-strong: #333a48;
+  --fg: #e9ebf1;
+  --fg-2: #b4bac7;
+  --fg-3: #8c95a6;
+  --accent: #8c84ff;
+  --accent-fg: #0b0d12;
+  --accent-soft: #1f1c40;
+  --accent-text: #b2acff;
+  --critical: #ff7b70;
+  --critical-soft: #2a1313;
+  --critical-border: #5c2320;
+  --high: #fda35a;
+  --high-soft: #2a1a0b;
+  --high-border: #5a3413;
+  --medium: #f2c14e;
+  --medium-soft: #272010;
+  --medium-border: #52421b;
+  --low: #a3adbd;
+  --low-soft: #1c212c;
+  --low-border: #353c4b;
+  --ok: #4dd492;
+  --ok-soft: #0d271b;
+  --ok-border: #1d5238;
+  --elev-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.04);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary-soft: var(--primary-soft);
-  --color-sev-5: var(--sev-5);
-  --color-sev-5-soft: var(--sev-5-soft);
-  --color-sev-4: var(--sev-4);
-  --color-sev-4-soft: var(--sev-4-soft);
-  --color-sev-3: var(--sev-3);
-  --color-sev-3-soft: var(--sev-3-soft);
-  --color-sev-2: var(--sev-2);
-  --color-sev-2-soft: var(--sev-2-soft);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-critical-border: var(--critical-border);
+  --color-high: var(--high);
+  --color-high-soft: var(--high-soft);
+  --color-high-border: var(--high-border);
+  --color-medium: var(--medium);
+  --color-medium-soft: var(--medium-soft);
+  --color-medium-border: var(--medium-border);
+  --color-low: var(--low);
+  --color-low-soft: var(--low-soft);
+  --color-low-border: var(--low-border);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
-  --color-chip-customer: var(--chip-customer);
-  --color-chip-internal: var(--chip-internal);
-  --color-chip-fleet: var(--chip-fleet);
-  --color-chip-billing: var(--chip-billing);
-  --color-chip-support: var(--chip-support);
+  --color-ok-border: var(--ok-border);
+
+  /* Legacy names kept as aliases of the tokens above. */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--fg);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--fg-3);
+  --color-input: var(--border-strong);
+  --color-ring: var(--accent);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-fg);
+  --color-primary-soft: var(--accent-soft);
+  --color-sev-5: var(--critical);
+  --color-sev-5-soft: var(--critical-soft);
+  --color-sev-4: var(--high);
+  --color-sev-4-soft: var(--high-soft);
+  --color-sev-3: var(--medium);
+  --color-sev-3-soft: var(--medium-soft);
+  --color-sev-2: var(--low);
+  --color-sev-2-soft: var(--low-soft);
+
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Type scale 12 / 13 / 14 / 16 / 20 / 24 / 32. */
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+  --text-lg: 16px;
+  --text-lg--line-height: 24px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 30px;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 32px;
+  --text-3xl--line-height: 38px;
+  --text-3xl--letter-spacing: -0.02em;
+
+  /* Radius: 6 controls · 10 cards · 14 dialogs. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-pop: var(--elev-pop);
+  --ease-out: var(--motion-ease);
+
+  --animate-enter: enter 160ms var(--motion-ease);
+  --animate-glow: glow 1.2s var(--motion-ease);
+  --animate-live: live 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-fill: fill 200ms var(--motion-ease);
 }
 
-* {
-  border-color: var(--border);
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-html,
-body {
-  background: var(--background);
-  color: var(--foreground);
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+    background-color: var(--accent-soft);
+  }
+  100% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
 }
 
-body {
-  font-family: var(--font-sans);
+@keyframes live {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--ok) 0%, transparent);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html,
+  body {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-feature-settings: "cv11" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  /* Thin, quiet scrollbars inside panes. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+/* KPI tile: a compact row on phones, a stacked tile from 640 px. */
+@layer components {
+  .kpi-tile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "label spark value"
+      "meta spark value";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 4px;
+    padding: 12px 14px;
+  }
+  @media (min-width: 640px) {
+    .kpi-tile {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "label label"
+        "value spark"
+        "meta meta";
+      row-gap: 12px;
+      padding: 16px;
+    }
+  }
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
   font-feature-settings:
     "tnum" 1,
     "cv11" 1;
-  -webkit-font-smoothing: antialiased;
 }
 
-:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+@utility skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 45%,
+    var(--surface-2) 65%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {

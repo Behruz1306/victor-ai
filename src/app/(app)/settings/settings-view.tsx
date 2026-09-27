@@ -28,6 +28,7 @@ import {
   ErrorState,
   Input,
   Label,
+  PageHeader,
   Select,
   Textarea,
 } from "@/components/ui/primitives";
@@ -48,17 +49,20 @@ export function SettingsView({ canEdit, canAudit }: { canEdit: boolean; canAudit
   });
   if (q.isError)
     return (
-      <ErrorState
-        message={t("common.error")}
-        onRetry={() => q.refetch()}
-        retryLabel={t("common.retry")}
-      />
+      <div className="p-6">
+        <ErrorState message={t("common.error")} onRetry={() => q.refetch()} retryLabel={t("common.retry")} />
+      </div>
     );
-  if (!q.data) return <LoadingRows rows={6} />;
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-lg font-semibold tracking-tight">{t("set.title")}</h1>
-      {!canEdit ? <p className="text-sm text-muted-foreground">{t("set.onlyOwner")}</p> : null}
+    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-4 px-4 py-6 sm:px-8 sm:py-8">
+      <PageHeader title={t("set.title")} context={canEdit ? t("set.context") : t("set.onlyOwner")} className="mb-2" />
+      {!q.data ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="skeleton h-64 rounded-lg" />
+          ))}
+        </div>
+      ) : (
       <div className="grid gap-4 lg:grid-cols-2">
         <SlaCard data={q.data} canEdit={canEdit} />
         <SystemCard data={q.data} />
@@ -68,7 +72,8 @@ export function SettingsView({ canEdit, canAudit }: { canEdit: boolean; canAudit
           <CriteriaCard data={q.data} canEdit={canEdit} />
         </div>
       </div>
-      {canAudit ? <AuditCard /> : null}
+      )}
+      {canAudit && q.data ? <AuditCard /> : null}
     </div>
   );
 }
@@ -111,7 +116,7 @@ function SaveRow({
           <CheckCircle2 className="size-3.5" /> {t("set.saved")}
         </span>
       ) : null}
-      {state === "error" ? <span className="text-xs text-sev-5">{error}</span> : null}
+      {state === "error" ? <span className="text-xs text-critical">{error}</span> : null}
       <Button size="sm" onClick={onSave} disabled={disabled || state === "saving"}>
         {t("common.save")}
       </Button>
@@ -125,7 +130,7 @@ function SlaCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
   const { save, state, error } = useSave();
   const field = (key: keyof typeof sla, label: TKey) => (
     <div className="flex items-center justify-between gap-3">
-      <Label htmlFor={`sla-${key}`} className="text-sm font-normal text-foreground">
+      <Label htmlFor={`sla-${key}`} className="text-sm font-normal text-fg">
         {t(label)}
       </Label>
       <Input
@@ -145,7 +150,7 @@ function SlaCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
         <CardTitle className="flex items-center gap-1.5">
           <Timer className="size-4" /> {t("set.sla")}
         </CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-fg-3">
           {t("set.timezone")}: {data.company.timezone}
         </p>
       </CardHeader>
@@ -192,7 +197,7 @@ function SystemCard({ data }: { data: Data }) {
           {tg.configured ? (
             <strong>@{tg.username}</strong>
           ) : (
-            <span className="text-muted-foreground">
+            <span className="text-fg-3">
               {tg.placeholder ? t("set.botPlaceholder") : t("set.botNotConfigured")}
             </span>
           )}
@@ -203,10 +208,10 @@ function SystemCard({ data }: { data: Data }) {
               aria-hidden
               className={`size-2 rounded-full ${tg.online ? "bg-ok" : "bg-sev-4"}`}
             />
-            <span className={tg.online ? "text-ok" : "text-sev-4"}>
+            <span className={tg.online ? "text-ok" : "text-high"}>
               {tg.online ? t("set.botOnline") : t("set.botOffline")}
             </span>
-            <span className="text-muted-foreground">
+            <span className="text-fg-3">
               ·{" "}
               {tg.lastUpdateAt ? (
                 t("set.botLastUpdate", { t: agoShort(tg.lastUpdateAt) })
@@ -230,7 +235,7 @@ function SystemCard({ data }: { data: Data }) {
           </Row>
         ) : null}
         {!tg.configured || !tg.canReadAllGroupMessages ? (
-          <p className="rounded-md bg-sev-3-soft px-2.5 py-1.5 text-xs text-sev-3">
+          <p className="rounded-md bg-medium-soft px-2.5 py-1.5 text-xs text-medium">
             {t("set.privacyWarn")}
           </p>
         ) : null}
@@ -243,7 +248,7 @@ function SystemCard({ data }: { data: Data }) {
               {t("set.workerAlive")} <TimeAgo date={data.system.workerLastSeen} />
             </span>
           ) : (
-            <span className="text-sev-4">{t("set.workerDown")}</span>
+            <span className="text-high">{t("set.workerDown")}</span>
           )}
         </Row>
       </CardContent>
@@ -284,7 +289,7 @@ function SendCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
               <span>{t(m === "copy" ? "set.sendCopy" : "set.sendBot")}</span>
             </label>
           ))}
-          <p className="text-xs text-muted-foreground">{t("set.botEnvNote")}</p>
+          <p className="text-xs text-fg-3">{t("set.botEnvNote")}</p>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -296,10 +301,10 @@ function SendCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
         </fieldset>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <Label htmlFor="retention" className="text-sm font-normal text-foreground">
+            <Label htmlFor="retention" className="text-sm font-normal text-fg">
               {t("set.retention")}
             </Label>
-            <p className="text-xs text-muted-foreground">{t("set.retentionHint")}</p>
+            <p className="text-xs text-fg-3">{t("set.retentionHint")}</p>
           </div>
           <Input
             id="retention"
@@ -314,7 +319,7 @@ function SendCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
         <div className="flex flex-col gap-1">
           <Label
             htmlFor="consent"
-            className="flex items-center gap-1 text-sm font-normal text-foreground"
+            className="flex items-center gap-1 text-sm font-normal text-fg"
           >
             <Megaphone className="size-3.5" /> {t("set.consent")}
           </Label>
@@ -325,7 +330,7 @@ function SendCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
             value={s.consentText}
             onChange={(e) => setS({ ...s, consentText: e.target.value })}
           />
-          <p className="text-xs text-muted-foreground">{t("set.consentHint")}</p>
+          <p className="text-xs text-fg-3">{t("set.consentHint")}</p>
         </div>
         {canEdit ? (
           <SaveRow
@@ -359,26 +364,26 @@ function UsageCard({ data }: { data: Data }) {
           <Cpu className="size-4" /> {t("set.llm")}
         </CardTitle>
         {data.ai.mode === "offline" ? (
-          <p className="text-xs text-sev-3">{t("set.aiOffline")}</p>
+          <p className="text-xs text-medium">{t("set.aiOffline")}</p>
         ) : data.ai.active.id === "mock" ? (
-          <p className="text-xs text-muted-foreground">{t("set.llmMock")}</p>
+          <p className="text-xs text-fg-3">{t("set.llmMock")}</p>
         ) : null}
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm">
         <Row label={t("set.aiActive")}>
           <span data-testid="ai-active">
             <strong>{data.ai.active.label}</strong>{" "}
-            <span className="font-mono text-xs text-muted-foreground">{data.ai.active.model}</span>
+            <span className="font-mono text-xs text-fg-3">{data.ai.active.model}</span>
           </span>
         </Row>
-        <div className="text-xs font-medium text-muted-foreground">{t("set.aiChain")}</div>
+        <div className="text-xs font-medium text-fg-3">{t("set.aiChain")}</div>
         <ol className="flex flex-col gap-1" data-testid="ai-chain">
           {data.ai.providers.map((p, i) => (
             <li key={p.id} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-xs">
               <span className="flex min-w-0 items-center gap-1.5">
-                <span className="font-mono text-muted-foreground">{i + 1}.</span>
+                <span className="font-mono text-fg-3">{i + 1}.</span>
                 <strong>{p.label}</strong>
-                <span className="truncate font-mono text-muted-foreground">
+                <span className="truncate font-mono text-fg-3">
                   {p.models.join(", ")}
                   {p.fastModels[0] !== p.models[0] ? ` · fast ${p.fastModels.join(", ")}` : ""}
                 </span>
@@ -401,12 +406,12 @@ function UsageCard({ data }: { data: Data }) {
           ))}
         </ol>
         {data.ai.cachedHits24h ? (
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-fg-3">
             {t("set.aiCached", { n: data.ai.cachedHits24h })}
           </p>
         ) : null}
         {data.ai.warnings.length ? (
-          <ul className="flex flex-col gap-1 rounded-md bg-sev-3-soft px-2.5 py-1.5 text-xs text-sev-3">
+          <ul className="flex flex-col gap-1 rounded-md bg-medium-soft px-2.5 py-1.5 text-xs text-medium">
             {data.ai.warnings.map((w) => (
               <li key={w}>
                 <AlertTriangle className="mr-1 inline size-3" />
@@ -415,7 +420,7 @@ function UsageCard({ data }: { data: Data }) {
             ))}
           </ul>
         ) : null}
-        <div className="mt-1 grid grid-cols-4 gap-2 rounded-md bg-muted/50 p-2 text-center">
+        <div className="mt-1 grid grid-cols-4 gap-2 rounded-md bg-surface-2 p-2 text-center">
           <Stat label={t("set.calls")} value={fmt(u.totals.calls)} />
           <Stat label={t("set.tokensIn")} value={fmt(u.totals.inputTokens)} />
           <Stat label={t("set.tokensOut")} value={fmt(u.totals.outputTokens)} />
@@ -424,12 +429,12 @@ function UsageCard({ data }: { data: Data }) {
             value={u.totals.costUsd == null ? "—" : `$${u.totals.costUsd.toFixed(4)}`}
           />
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-fg-3">
           {t("set.usage30")}. {t("set.costNote")}
         </p>
         {u.items.length ? (
           <table className="w-full text-xs">
-            <thead className="text-left text-muted-foreground">
+            <thead className="text-left text-fg-3">
               <tr>
                 <th className="py-1 font-medium">{t("set.task")}</th>
                 <th className="py-1 font-medium">{t("set.model")}</th>
@@ -442,11 +447,11 @@ function UsageCard({ data }: { data: Data }) {
               {u.items.map((i) => (
                 <tr key={`${i.task}-${i.model}`}>
                   <td className="py-1">{i.task}</td>
-                  <td className="py-1 text-muted-foreground">{i.model}</td>
+                  <td className="py-1 text-fg-3">{i.model}</td>
                   <td className="py-1 text-right tabular-nums">
                     {i.calls}
                     {i.failed ? (
-                      <span className="text-sev-5">
+                      <span className="text-critical">
                         {" "}
                         ({i.failed} {t("set.failed")})
                       </span>
@@ -478,7 +483,7 @@ function CriteriaCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
         <CardTitle className="flex items-center gap-1.5">
           <Eye className="size-4" /> {t("set.criteria")}
         </CardTitle>
-        <p className="text-xs text-muted-foreground">{t("set.criteriaHint")}</p>
+        <p className="text-xs text-fg-3">{t("set.criteriaHint")}</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {items.map((c) => (
@@ -525,8 +530,8 @@ function CriteriaCard({ data, canEdit }: { data: Data; canEdit: boolean }) {
                     }
                     className={
                       on
-                        ? "rounded border border-primary bg-primary-soft px-1.5 py-0.5 text-[11px] text-primary"
-                        : "rounded border px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                        ? "rounded border border-primary bg-accent-soft px-1.5 py-0.5 text-xs text-accent-text"
+                        : "rounded border px-1.5 py-0.5 text-xs text-fg-3"
                     }
                   >
                     {t(`signal.${k}` as TKey)}
@@ -588,10 +593,10 @@ function AuditCard() {
         {!q.data ? (
           <LoadingRows rows={3} />
         ) : !q.data.entries.length ? (
-          <p className="text-sm text-muted-foreground">{t("set.auditEmpty")}</p>
+          <p className="text-sm text-fg-3">{t("set.auditEmpty")}</p>
         ) : (
           <table className="w-full min-w-[600px] text-xs" data-testid="audit-table">
-            <thead className="text-left text-muted-foreground">
+            <thead className="text-left text-fg-3">
               <tr>
                 <th className="py-1.5 font-medium">{t("set.auditWhen")}</th>
                 <th className="py-1.5 font-medium">{t("set.auditUser")}</th>
@@ -602,13 +607,13 @@ function AuditCard() {
             <tbody className="divide-y">
               {q.data.entries.map((e) => (
                 <tr key={e.id}>
-                  <td className="py-1.5 whitespace-nowrap text-muted-foreground">
+                  <td className="py-1.5 whitespace-nowrap text-fg-3">
                     <TimeAgo date={e.at} />
                   </td>
                   <td className="py-1.5">{e.user ?? "—"}</td>
                   <td className="py-1.5 font-mono">{e.action}</td>
                   <td
-                    className="max-w-[420px] truncate py-1.5 text-muted-foreground"
+                    className="max-w-[420px] truncate py-1.5 text-fg-3"
                     title={JSON.stringify(e.meta)}
                   >
                     {Object.entries(e.meta ?? {})
@@ -631,7 +636,7 @@ function AuditCard() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-fg-3">{label}</span>
       <span className="text-right">{children}</span>
     </div>
   );
@@ -640,7 +645,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className="text-xs text-fg-3">{label}</div>
       <div className="text-sm font-semibold tabular-nums">{value}</div>
     </div>
   );

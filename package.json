@@ -22,12 +22,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "screens": "E2E_SCREENS=1 playwright test tests/e2e/zz-screens.spec.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env src/lib/db/migrate.ts",
     "seed": "tsx --env-file-if-exists=.env seed/seed.ts",
     "seed:reset": "tsx --env-file-if-exists=.env seed/seed.ts --reset",
     "eval": "tsx --env-file-if-exists=.env scripts/eval.ts",
-    "llm:models": "tsx --env-file-if-exists=.env scripts/list-models.ts"
+    "llm:models": "tsx --env-file-if-exists=.env scripts/list-models.ts",
+    "brand": "node scripts/brand-assets.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.63",
@@ -42,6 +44,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "drizzle-orm": "^0.45.3",
     "geist": "^1.7.2",
     "grammy": "^1.46.0",
@@ -52,10 +55,12 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "recharts": "^3.10.1",
+    "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3.3.7",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",

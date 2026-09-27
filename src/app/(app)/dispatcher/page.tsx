@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { requirePage } from "@/lib/auth/guard";
 import { getDb } from "@/lib/db/client";
-import { users } from "@/lib/db/schema";
+import { companies, users } from "@/lib/db/schema";
 import { providerInfo } from "@/lib/llm";
 import { DispatcherView } from "./dispatcher-view";
 
@@ -14,6 +14,11 @@ export default async function DispatcherPage({
 }) {
   const ctx = await requirePage("view:dispatcher");
   const sp = await searchParams;
+  const [company] = await getDb()
+    .select({ tz: companies.timezone })
+    .from(companies)
+    .where(eq(companies.id, ctx.companyId));
+  const info = await providerInfo();
   const uuid = /^[0-9a-f-]{36}$/i;
   const dispatchers =
     ctx.role === "dispatcher"
@@ -35,7 +40,8 @@ export default async function DispatcherPage({
       initialChannel={sp.ch && uuid.test(sp.ch) ? sp.ch : null}
       dispatchers={dispatchers}
       canViewOthers={ctx.role !== "dispatcher"}
-      provider={(await providerInfo()).provider}
+      provider={info.offline ? "mock" : info.label}
+      timezone={company?.tz ?? "America/Chicago"}
     />
   );
 }

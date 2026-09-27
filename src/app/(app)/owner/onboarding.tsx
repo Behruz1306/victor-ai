@@ -59,19 +59,19 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
     <Card className="flex flex-col gap-3 p-4" data-testid="onboarding">
       <div>
         <h2 className="text-base font-semibold">{t("onb.title")}</h2>
-        <p className="text-xs text-muted-foreground">{t("onb.subtitle")}</p>
+        <p className="text-xs text-fg-3">{t("onb.subtitle")}</p>
       </div>
       <div className="flex flex-col gap-2">
         {questions.slice(0, Math.min(step + 1, 3)).map((q, i) => (
           <React.Fragment key={q}>
             <div className="flex items-start gap-2">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-accent text-accent-fg">
                 <Bot className="size-3.5" />
               </span>
-              <p className="rounded-lg rounded-tl-none bg-muted px-3 py-2 text-sm">{t(q)}</p>
+              <p className="rounded-lg rounded-tl-none bg-surface-2 px-3 py-2 text-sm">{t(q)}</p>
             </div>
             {answers[i] !== undefined ? (
-              <p className="ml-auto max-w-[85%] rounded-lg rounded-tr-none bg-primary-soft px-3 py-2 text-sm">
+              <p className="ml-auto max-w-[85%] rounded-lg rounded-tr-none bg-accent-soft px-3 py-2 text-sm">
                 {answers[i] || "—"}
               </p>
             ) : null}
@@ -108,7 +108,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       ) : busy && !items ? (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2 text-sm text-fg-3">
           <Loader2 className="size-4 animate-spin" /> {t("onb.building")}
         </p>
       ) : items ? (
@@ -129,7 +129,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
                 </div>
                 <button
                   aria-label={t("set.remove")}
-                  className="text-muted-foreground hover:text-sev-5"
+                  className="text-fg-3 hover:text-critical"
                   onClick={() => setItems(items.filter((x) => x.id !== c.id))}
                 >
                   <Trash2 className="size-4" />
@@ -152,7 +152,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       ) : null}
-      {error ? <p className="text-xs text-sev-5">{error}</p> : null}
+      {error ? <p className="text-xs text-critical">{error}</p> : null}
     </Card>
   );
 }

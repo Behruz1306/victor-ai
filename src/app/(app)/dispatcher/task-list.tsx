@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, AlertTriangle } from "lucide-react";
+import { ChevronRight, OctagonAlert } from "lucide-react";
 import { useT } from "@/components/providers";
 import { MiniStepper } from "@/components/stepper";
 import { useClock } from "@/components/common";
@@ -10,7 +10,15 @@ import { cn } from "@/lib/utils";
 import type { TKey } from "@/lib/i18n";
 import type { DetailTask } from "./types";
 
-export function TaskList({ tasks, timezone }: { tasks: DetailTask[]; timezone: string }) {
+export function TaskList({
+  tasks,
+  timezone,
+  freshIds,
+}: {
+  tasks: DetailTask[];
+  timezone: string;
+  freshIds: Set<string>;
+}) {
   const { t, lang } = useT();
   const clock = useClock(timezone);
   const open = tasks.filter((x) => x.status !== "delivered" && x.status !== "cancelled");
@@ -20,57 +28,64 @@ export function TaskList({ tasks, timezone }: { tasks: DetailTask[]; timezone: s
       <Link
         href={`/tasks/${task.id}`}
         className={cn(
-          "flex flex-col gap-1.5 rounded-md border px-3 py-2 hover:bg-muted/50",
-          task.stuckReason && "border-sev-5/40",
+          "group flex flex-col gap-2 px-3 py-2.5 transition-colors hover:bg-surface-2",
+          freshIds.has(task.id) && "animate-glow",
         )}
         data-testid={`task-${task.ref ?? task.id}`}
       >
         <div className="flex items-start gap-2">
-          <span className="min-w-0 flex-1 text-[13px] leading-snug font-medium">
+          <span className="min-w-0 flex-1 text-sm leading-snug font-medium text-fg">
             {pick(task.title, lang)}
           </span>
-          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          <ChevronRight
+            className="mt-0.5 size-4 shrink-0 text-fg-3 transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
         </div>
         <MiniStepper status={task.status} events={task.events} stuck={Boolean(task.stuckReason)} />
-        <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+        <div className="flex items-center justify-between gap-2 text-xs">
           <span
             className={cn(
+              "font-medium",
               task.stuckReason
-                ? "font-medium text-sev-5"
+                ? "text-critical"
                 : task.status === "delivered"
                   ? "text-ok"
-                  : "",
+                  : "text-fg-2",
             )}
           >
             {t(`status.${task.status}` as TKey)}
           </span>
-          <span>
+          <span className="num font-mono text-fg-3">
             {task.deadlineAt
-              ? `${t("task.deadline")}: ${clock(task.deadlineAt, true)}`
+              ? `${t("task.due")} ${clock(task.deadlineAt, true)}`
               : t("task.noDeadline")}
           </span>
         </div>
         {task.stuckReason ? (
-          <p className="flex items-start gap-1 text-[11px] leading-snug text-sev-5">
-            <AlertTriangle className="mt-px size-3 shrink-0" /> {pick(task.stuckReason, lang)}
+          <p className="flex items-start gap-1.5 text-xs leading-snug text-critical">
+            <OctagonAlert className="mt-px size-3 shrink-0" aria-hidden />{" "}
+            {pick(task.stuckReason, lang)}
           </p>
         ) : null}
       </Link>
     </li>
   );
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col">
       {open.length ? (
-        <ul className="flex flex-col gap-2">{open.map(row)}</ul>
+        <ul className="divide-y overflow-hidden rounded-lg border bg-surface">{open.map(row)}</ul>
       ) : (
-        <p className="px-1 text-xs text-muted-foreground">{t("disp.noTasks")}</p>
+        <p className="px-1 text-sm text-fg-3">{t("disp.noTasks")}</p>
       )}
       {closed.length ? (
-        <details className="text-xs">
-          <summary className="cursor-pointer px-1 py-1 text-muted-foreground">
-            {t("disp.recentlyClosed")} ({closed.length})
+        <details className="group mt-2 text-sm">
+          <summary className="cursor-pointer list-none px-1 py-1 text-fg-3 hover:text-fg-2">
+            {t("disp.recentlyClosed")} <span className="num">({closed.length})</span>
           </summary>
-          <ul className="mt-2 flex flex-col gap-2">{closed.map(row)}</ul>
+          <ul className="mt-1 divide-y overflow-hidden rounded-lg border bg-surface">
+            {closed.map(row)}
+          </ul>
         </details>
       ) : null}
     </div>

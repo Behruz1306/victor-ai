@@ -51,7 +51,7 @@ test("golden path: chaos → dispatcher → edit & learn → task card → owner
   await owner.goto("/sources");
   await expect(owner.getByText("Apex ↔ Blue Ridge").first()).toBeVisible();
   await owner.getByRole("button", { name: /Fleet/ }).first().click();
-  await expect(owner.getByText(/трак 214/)).toBeVisible();
+  await expect(owner.getByText(/трак 214/).first()).toBeVisible();
   await shot(owner, "02-sources-raw-chaos");
 
   // 2. Dispatcher screen with cross-chat context
@@ -125,6 +125,8 @@ test("golden path: chaos → dispatcher → edit & learn → task card → owner
   // 7. Handoff brief
   await lead.reload();
   await lead.getByTestId("lead-row-Timur").click();
+  await lead.getByTestId("handoff-open").click();
+  await lead.getByTestId("handoff-next").click();
   await lead.getByTestId("handoff-generate").click();
   await lead.waitForURL("**/lead/handoff/**", { timeout: 60_000 });
   await expect(lead.getByTestId("handoff-brief").first()).toBeVisible();

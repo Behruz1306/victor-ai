@@ -74,16 +74,16 @@ export function HandoffView({ data }: { data: Data }) {
           )}
         </div>
       </div>
-      {error ? <p className="text-sm text-sev-5">{error}</p> : null}
+      {error ? <p className="text-sm text-critical">{error}</p> : null}
       <header>
         <h1 className="text-xl font-semibold tracking-tight">{t("handoff.title")}</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-fg-3">
           {data.companyName} · {t("handoff.subtitle", { from: data.from })} →{" "}
           <strong>{data.to}</strong> · {clock(data.createdAt, true)}
         </p>
       </header>
       {data.briefs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("handoff.empty")}</p>
+        <p className="text-sm text-fg-3">{t("handoff.empty")}</p>
       ) : null}
       {[...byCustomer.entries()].map(([customer, briefs]) => (
         <section key={customer} className="flex flex-col gap-3 break-inside-avoid">
@@ -97,7 +97,7 @@ export function HandoffView({ data }: { data: Data }) {
               <dl className="grid gap-3 text-sm md:grid-cols-2">
                 <Field label={t("handoff.whatHappened")} value={pick(b.whatHappened, lang)} />
                 <div>
-                  <dt className="text-xs font-semibold text-muted-foreground uppercase">
+                  <dt className="text-xs font-semibold text-fg-3 uppercase">
                     {t("handoff.openTasks")}
                   </dt>
                   <dd className="mt-1">
@@ -108,7 +108,7 @@ export function HandoffView({ data }: { data: Data }) {
                             <Link href={`/tasks/${task.taskId}`} className="hover:underline">
                               {pick(task.title, lang)}
                             </Link>{" "}
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-fg-3">
                               — {t(`status.${task.status}` as TKey)}
                               {task.deadlineAt
                                 ? `, ${t("task.deadline")}: ${clock(task.deadlineAt, true)}`
@@ -139,7 +139,7 @@ export function HandoffView({ data }: { data: Data }) {
 function Field({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div>
-      <dt className="text-xs font-semibold text-muted-foreground uppercase">{label}</dt>
+      <dt className="text-xs font-semibold text-fg-3 uppercase">{label}</dt>
       <dd className={strong ? "mt-1 font-medium" : "mt-1"}>{value || "—"}</dd>
     </div>
   );

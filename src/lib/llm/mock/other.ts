@@ -1,5 +1,6 @@
 // Offline stand-ins for the smaller LLM tasks. Deterministic, template-based.
 import type { SignalKind, ChatType } from "@/lib/db/schema";
+import type { L10n } from "@/lib/types";
 import type {
   ChannelMapping,
   DistilledRule,
@@ -15,7 +16,7 @@ import type {
   MappingInput,
 } from "@/lib/pipeline/types";
 import { customerNameCore } from "@/lib/ingest/ingest";
-import { clock } from "@/lib/heuristics/extract";
+import { clock, extractRefs } from "@/lib/heuristics/extract";
 
 const WHY: Record<SignalKind, { en: string; ru: string }> = {
   complaint: {
@@ -56,12 +57,34 @@ const WHY: Record<SignalKind, { en: string; ru: string }> = {
   },
 };
 
+/** The quote is shown next to the item, so the summary says it in other words. */
+function summarize(c: DigestInput["candidates"][number]): L10n {
+  const ref = extractRefs(c.evidenceQuote ?? "")[0];
+  const load = ref ? { en: ` on load ${ref}`, ru: ` по грузу ${ref}` } : { en: "", ru: "" };
+  const customer = c.customerName ?? "The customer";
+  const who = /^(\p{L}+) (?:complains|жалуется)/u.exec(c.reason.en)?.[1];
+  if (c.kind === "complaint") {
+    return {
+      en: `${who ? `${who} at ${customer}` : customer} complained about slow answers${load.en}.`,
+      ru: `${who ? `${who} из ${customer}` : customer} пожаловался на медленные ответы${load.ru}.`,
+    };
+  }
+  if (c.kind === "rude_tone") {
+    const name = c.responsibleName ?? "A dispatcher";
+    return {
+      en: `${name} answered ${customer} dismissively in the customer chat${load.en}.`,
+      ru: `${name} пренебрежительно ответил ${customer} в клиентском чате${load.ru}.`,
+    };
+  }
+  return c.reason;
+}
+
 export function mockOwnerDigest(input: DigestInput): OwnerDigest {
   return {
     items: input.candidates.map((c) => ({
       signal_id: c.signalId,
       title: c.title,
-      what_happened: c.reason,
+      what_happened: summarize(c),
       why_it_matters: WHY[c.kind],
     })),
   };

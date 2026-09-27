@@ -6,12 +6,14 @@ import { companies, customers } from "@/lib/db/schema";
 import { guardApi, handle, HttpError } from "@/lib/auth/guard";
 import { env } from "@/lib/env";
 import { loadYesterday } from "@/lib/demo/seed";
-import { demoStatus, resetDemoData, startReplay } from "@/lib/demo/control";
+import { demoFreshness, demoStatus, resetDemoData, startReplay } from "@/lib/demo/control";
 import { cancelPending, enqueue } from "@/lib/jobs/queue";
 import { runSla } from "@/lib/pipeline/sla-apply";
 import { generateOwnerDigest } from "@/lib/pipeline/digest";
 import { systemStatus } from "@/lib/queries/settings";
 import { providerInfo } from "@/lib/llm";
+import { setLlmMode } from "@/lib/llm/mode";
+import { llmOverview } from "@/lib/queries/llm-status";
 import { audit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -31,10 +33,14 @@ export const GET = handle(async (req) => {
     ...(await demoStatus(db, ctx.companyId)),
     system: await systemStatus(db),
     llm: await providerInfo(),
+    ai: await llmOverview(db, ctx.companyId),
+    freshness: await demoFreshness(db, ctx.companyId),
   });
 });
 
-const Body = z.object({ action: z.enum(["reset", "load", "replay_start", "replay_stop", "sla", "digest"]) });
+const Body = z.object({
+  action: z.enum(["reset", "load", "replay_start", "replay_stop", "sla", "digest", "offline_on", "offline_off"]),
+});
 
 export const POST = handle(async (req) => {
   const ctx = await demoCtx(req);
@@ -75,6 +81,12 @@ export const POST = handle(async (req) => {
     result = await runSla(db, ctx.companyId);
   } else if (action === "digest") {
     result.items = (await generateOwnerDigest(db, ctx.companyId)).length;
+  } else if (action === "offline_on" || action === "offline_off") {
+    // Venue internet failed (or came back): switch every process to/from the mock at runtime.
+    const mode = action === "offline_on" ? "offline" : "auto";
+    await setLlmMode(db, mode, ctx.userId);
+    result.mode = mode;
+    await audit({ companyId: ctx.companyId, userId: ctx.userId, action: "llm_mode_changed", meta: { mode } });
   }
   return NextResponse.json({ ok: true, ...result });
 });

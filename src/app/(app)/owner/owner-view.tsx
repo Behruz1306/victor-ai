@@ -3,44 +3,38 @@
 import * as React from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  RefreshCw,
-  ListChecks,
-  ShieldAlert,
-  Timer,
-  Sun,
-  UserRound,
-  Eye,
-} from "lucide-react";
+import { ArrowRight, RefreshCw, ListChecks, ShieldAlert, Timer, Eye, Sparkles } from "lucide-react";
 import { apiGet, apiPost, POLL_MS, type Jsonify } from "@/lib/client/api";
 import type { ownerOverview } from "@/lib/queries/owner";
 import { useT } from "@/components/providers";
 import { Button } from "@/components/ui/button";
-import { Badge, Card, ErrorState, Skeleton } from "@/components/ui/primitives";
-import { SeverityIcon, SignalBadge, TimeAgo, DemoDataTag, sevTone } from "@/components/common";
-import { formatDuration } from "@/lib/i18n";
+import { Badge, ErrorState } from "@/components/ui/primitives";
+import {
+  Avatar,
+  DemoDataTag,
+  EvidenceQuote,
+  SignalBadge,
+  TimeAgo,
+  severityLevel,
+} from "@/components/common";
+import { KpiTile } from "@/components/kpi-tile";
+import { EmptyState } from "@/components/empty-state";
+import { formatDuration, pluralRu } from "@/lib/i18n";
 import { pick } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Onboarding } from "./onboarding";
 
 type Data = Jsonify<Awaited<ReturnType<typeof ownerOverview>>>;
+type Item = Data["digest"]["items"][number];
 
-// Literal class names so Tailwind generates them.
-const BORDER: Record<string, string> = {
-  sev5: "var(--sev-5)",
-  sev4: "var(--sev-4)",
-  sev3: "var(--sev-3)",
-  sev2: "var(--sev-2)",
-};
-const TEXT: Record<string, string> = {
-  sev5: "text-sev-5",
-  sev4: "text-sev-4",
-  sev3: "text-sev-3",
-  sev2: "text-sev-2",
+const RAIL: Record<string, string> = {
+  critical: "bg-critical",
+  high: "bg-high",
+  medium: "bg-medium",
+  low: "bg-low",
 };
 
-export function OwnerView() {
+export function OwnerView({ timezone }: { timezone: string }) {
   const { t, lang } = useT();
   const qc = useQueryClient();
   const q = useQuery({
@@ -56,177 +50,172 @@ export function OwnerView() {
 
   if (q.isError)
     return (
-      <ErrorState
-        message={t("common.error")}
-        onRetry={() => q.refetch()}
-        retryLabel={t("common.retry")}
-      />
+      <div className="px-4 py-6 sm:px-8">
+        <ErrorState
+          message={t("common.error")}
+          onRetry={() => q.refetch()}
+          retryLabel={t("common.retry")}
+        />
+      </div>
     );
   const d = q.data;
   const items = d?.digest.items ?? [];
+  const k = d?.kpis;
+  const today = new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "en-US", {
+    timeZone: timezone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
+  const windowLabel =
+    k?.window.kind === "demoScenario" ? t("owner.windowDemo") : t("owner.window24h");
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">{t("owner.title")}</h1>
-          <p className="text-xs text-muted-foreground">
-            {d?.digest.generatedAt ? (
-              <>
-                {t("common.lastUpdated", { time: "" })}
-                <TimeAgo date={d.digest.generatedAt} />
-              </>
-            ) : (
-              " "
-            )}
-          </p>
+    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-6 px-4 py-6 sm:px-8 sm:py-10">
+      <header className="flex flex-col gap-3">
+        <p className="text-sm text-fg-3 first-letter:uppercase" suppressHydrationWarning>
+          {today}
+        </p>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-semibold text-fg sm:text-3xl" data-testid="owner-headline">
+            {d
+              ? items.length
+                ? items.length === 1
+                  ? t("owner.headlineOne")
+                  : t("owner.headline", {
+                      n: items.length,
+                      things: pluralRu(items.length, "вопрос", "вопроса", "вопросов"),
+                    })
+                : t("owner.headlineCalm")
+              : " "}
+          </h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => refresh.mutate()}
+            disabled={refresh.isPending}
+            aria-label={t("owner.refresh")}
+            title={t("owner.refresh")}
+            data-testid="owner-refresh"
+            className="mt-0.5 shrink-0"
+          >
+            <RefreshCw className={cn(refresh.isPending && "animate-spin")} />
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refresh.mutate()}
-          disabled={refresh.isPending}
-          data-testid="owner-refresh"
-        >
-          <RefreshCw className={cn(refresh.isPending && "animate-spin")} /> {t("owner.refresh")}
-        </Button>
-      </div>
+        <p className="text-base text-fg-3">
+          {t("owner.promise")}
+          {d?.digest.generatedAt ? (
+            <>
+              {" "}
+              · {t("owner.updated")} <TimeAgo date={d.digest.generatedAt} />
+            </>
+          ) : null}
+        </p>
+      </header>
 
       {d && !d.onboardingDone && !showOnboarding ? (
         <button
           onClick={() => setShowOnboarding(true)}
-          className="flex items-center gap-3 rounded-lg border border-dashed border-primary/50 bg-primary-soft/40 px-4 py-3 text-left"
+          className="group flex items-center gap-3 rounded-lg border border-accent/25 bg-accent-soft px-4 py-3 text-left transition-colors hover:border-accent/50"
           data-testid="onboarding-banner"
         >
-          <Eye className="size-5 text-primary" />
-          <span className="flex-1">
-            <span className="block text-sm font-semibold">{t("onb.title")}</span>
-            <span className="block text-xs text-muted-foreground">{t("onb.subtitle")}</span>
+          <Eye className="size-5 shrink-0 text-accent-text" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block text-base font-medium text-fg">{t("onb.title")}</span>
+            <span className="block text-sm text-fg-2">{t("onb.subtitle")}</span>
           </span>
-          <ArrowRight className="size-4 text-primary" />
+          <ArrowRight
+            className="size-4 shrink-0 text-accent-text transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
         </button>
       ) : null}
       {showOnboarding ? <Onboarding onClose={() => setShowOnboarding(false)} /> : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Kpi
-          icon={<ListChecks />}
-          label={t("owner.kpiOpen")}
-          value={d ? String(d.kpis.openTasks) : null}
-          testId="kpi-open"
-        />
-        <Kpi
-          icon={<ShieldAlert />}
-          label={t("owner.kpiRisk")}
-          value={d ? String(d.kpis.atRisk) : null}
-          tone={d && d.kpis.atRisk > 0 ? "text-sev-4" : undefined}
-          testId="kpi-risk"
-        />
-        <Kpi
-          icon={<Timer />}
-          label={t("owner.kpiAck")}
-          value={
-            d
-              ? d.kpis.avgAckMinutes == null
-                ? "—"
-                : formatDuration(lang, d.kpis.avgAckMinutes)
-              : null
-          }
-          hint={
-            d && d.kpis.avgAckMinutes == null
-              ? t("owner.kpiAckNone")
-              : d
-                ? `n = ${d.kpis.ackSample}`
-                : undefined
-          }
-          testId="kpi-ack"
-        />
-      </div>
-
-      {d?.isDemo ? (
-        <div className="-mt-1 flex justify-end">
-          <DemoDataTag />
+      <section aria-label={t("owner.kpis")} className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <KpiTile
+            testId="kpi-open"
+            icon={<ListChecks />}
+            label={t("owner.kpiOpen")}
+            value={k ? k.openTasks : null}
+            series={k?.trend.open}
+            delta={
+              k?.trend.delta.open != null
+                ? { value: k.trend.delta.open, better: "down", label: t("owner.vs24h") }
+                : null
+            }
+            context={k?.trend.delta.open == null ? windowLabel : undefined}
+          />
+          <KpiTile
+            testId="kpi-risk"
+            icon={<ShieldAlert />}
+            label={t("owner.kpiRisk")}
+            value={k ? k.atRisk : null}
+            tone="critical"
+            series={k?.trend.risk}
+            delta={
+              k?.trend.delta.risk != null
+                ? { value: k.trend.delta.risk, better: "down", label: t("owner.vs24h") }
+                : null
+            }
+            context={k?.trend.delta.risk == null ? t("owner.riskHint") : undefined}
+          />
+          <KpiTile
+            testId="kpi-ack"
+            icon={<Timer />}
+            label={t("owner.kpiAckShort")}
+            value={k ? k.avgAckMinutes : null}
+            format={(n) => formatDuration(lang, n)}
+            emptyText={t("owner.kpiAckNone")}
+            series={k?.trend.ack}
+            delta={
+              k?.trend.delta.ack != null
+                ? {
+                    value: k.trend.delta.ack,
+                    better: "down",
+                    label: t("owner.vsPrev"),
+                    format: (n) => formatDuration(lang, Math.abs(n)),
+                  }
+                : null
+            }
+            context={k ? `${windowLabel} · n = ${k.ackSample}` : undefined}
+          />
         </div>
-      ) : null}
+        {d?.isDemo ? (
+          <div className="flex justify-end">
+            <DemoDataTag />
+          </div>
+        ) : null}
+      </section>
 
-      <section className="flex flex-col gap-3" data-testid="owner-digest">
+      <section
+        className="flex flex-col gap-3"
+        data-testid="owner-digest"
+        aria-label={t("owner.attention")}
+      >
         {q.isLoading ? (
-          [0, 1, 2].map((i) => <Skeleton key={i} className="h-32" />)
+          [0, 1, 2].map((i) => <div key={i} className="skeleton h-44 rounded-lg" />)
         ) : items.length === 0 ? (
-          <Card className="flex flex-col items-center gap-2 px-6 py-14 text-center">
-            <Sun className="size-8 text-sev-3" />
-            <p className="text-base font-medium">{t("owner.empty")}</p>
-          </Card>
+          <div className="rounded-lg border bg-surface">
+            <EmptyState illustration="calm" title={t("owner.empty")} hint={t("owner.emptyHint")} />
+          </div>
         ) : (
           items.map((it, i) => (
-            <Card
-              key={it.signalId}
-              className="overflow-hidden border-l-4"
-              style={{ borderLeftColor: BORDER[sevTone(it.severity)] }}
-              data-testid="digest-item"
-            >
-              <div className="flex flex-col gap-2 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="grid size-6 place-items-center rounded-full bg-muted text-xs font-semibold">
-                    {i + 1}
-                  </span>
-                  <SignalBadge kind={it.kind} severity={it.severity} />
-                  {it.customerName ? <Badge tone="outline">{it.customerName}</Badge> : null}
-                </div>
-                <h2 className="flex items-start gap-1.5 text-base leading-snug font-semibold">
-                  <SeverityIcon
-                    severity={it.severity}
-                    className={cn("mt-1", TEXT[sevTone(it.severity)])}
-                  />
-                  {pick(it.title, lang)}
-                </h2>
-                <p className="text-sm">{pick(it.whatHappened, lang)}</p>
-                {pick(it.whyItMatters, lang) ? (
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">{t("owner.why")}: </span>
-                    {pick(it.whyItMatters, lang)}
-                  </p>
-                ) : null}
-                {it.evidenceQuote ? (
-                  <blockquote className="rounded border-l-2 border-border bg-muted/50 px-3 py-1.5 text-[13px] italic">
-                    “{it.evidenceQuote}”
-                  </blockquote>
-                ) : null}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <UserRound className="size-3.5" /> {t("owner.who")}:{" "}
-                    <strong className="text-foreground">
-                      {it.responsibleName ?? t("common.unassigned")}
-                    </strong>
-                  </span>
-                  <Button asChild size="sm" variant="outline">
-                    <Link
-                      href={
-                        it.taskId
-                          ? `/tasks/${it.taskId}`
-                          : `/dispatcher?c=${it.customerId ?? ""}${it.channelId ? `&ch=${it.channelId}` : ""}`
-                      }
-                      data-testid="digest-open"
-                    >
-                      {t("common.open")} <ArrowRight />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            <AttentionCard key={it.signalId} it={it} rank={i + 1} timezone={timezone} />
           ))
         )}
       </section>
 
       {d && d.criteria.length ? (
-        <section className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <Eye className="size-3.5" /> {t("owner.criteria")}:
+        <section className="flex flex-wrap items-center gap-1.5 text-sm text-fg-3">
+          <Eye className="size-3.5" aria-hidden /> {t("owner.criteria")}:
           {d.criteria.map((c) => (
             <Badge key={c.id} tone="outline">
               {c.text}
             </Badge>
           ))}
-          <Link href="/settings#criteria" className="text-primary hover:underline">
+          <Link href="/settings#criteria" className="text-accent-text hover:underline">
             {t("owner.editCriteria")}
           </Link>
         </section>
@@ -235,33 +224,67 @@ export function OwnerView() {
   );
 }
 
-function Kpi({
-  icon,
-  label,
-  value,
-  hint,
-  tone,
-  testId,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | null;
-  hint?: string;
-  tone?: string;
-  testId: string;
-}) {
+function AttentionCard({ it, rank, timezone }: { it: Item; rank: number; timezone: string }) {
+  const { t, lang } = useT();
+  const level = severityLevel(it.severity);
+  const href = it.taskId
+    ? `/tasks/${it.taskId}`
+    : `/dispatcher?c=${it.customerId ?? ""}${it.channelId ? `&ch=${it.channelId}` : ""}`;
+  const why = pick(it.whyItMatters, lang);
   return (
-    <Card className="flex flex-col gap-1 px-4 py-3" data-testid={testId}>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground [&_svg]:size-3.5">
-        {icon}
-        {label}
+    <article
+      className="relative flex flex-col gap-3 overflow-hidden rounded-lg border bg-surface p-4 pl-5 animate-enter sm:p-5 sm:pl-6"
+      style={{ animationDelay: `${rank * 40}ms` }}
+      data-testid="digest-item"
+    >
+      <span aria-hidden className={cn("absolute top-0 bottom-0 left-0 w-1", RAIL[level])} />
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="num font-mono text-xs text-fg-3">{String(rank).padStart(2, "0")}</span>
+        <SignalBadge kind={it.kind} severity={it.severity} />
+        {it.customerName ? (
+          <span className="text-sm font-medium text-fg-2">{it.customerName}</span>
+        ) : null}
       </div>
-      {value === null ? (
-        <Skeleton className="h-8 w-16" />
-      ) : (
-        <div className={cn("text-3xl font-semibold tabular-nums", tone)}>{value}</div>
-      )}
-      {hint ? <div className="text-[11px] text-muted-foreground">{hint}</div> : null}
-    </Card>
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-lg font-semibold text-fg">{pick(it.title, lang)}</h2>
+        <p className="text-base text-fg-2">{pick(it.whatHappened, lang)}</p>
+        {why ? (
+          <p className="flex gap-1.5 text-sm text-fg-3">
+            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-accent-text" aria-hidden />
+            <span>
+              <span className="font-medium text-fg-2">{t("owner.why")}: </span>
+              {why}
+            </span>
+          </p>
+        ) : null}
+      </div>
+      {it.evidenceQuote ? (
+        <EvidenceQuote
+          text={it.evidenceQuote}
+          chatType={it.evidence?.chatType ?? null}
+          chatTitle={it.evidence?.chatTitle}
+          sender={it.evidence?.sender}
+          at={it.evidence?.sentAt}
+          timezone={timezone}
+          clamp={3}
+        />
+      ) : null}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <span className="flex min-w-0 items-center gap-2 text-sm text-fg-3">
+          <Avatar name={it.responsibleName ?? "?"} size={24} />
+          <span className="truncate">
+            {t("owner.who")}:{" "}
+            <span className="font-medium text-fg">
+              {it.responsibleName ?? t("common.unassigned")}
+            </span>
+          </span>
+        </span>
+        <Button asChild size="sm" variant="outline">
+          <Link href={href} data-testid="digest-open">
+            {t("common.open")} <ArrowRight />
+          </Link>
+        </Button>
+      </div>
+    </article>
   );
 }

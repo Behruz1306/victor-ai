@@ -120,18 +120,18 @@ Tick items as they are finished. Blockers go to the bottom section.
 
 ## Phase C — Design overhaul
 - [x] C0 before screenshots (taken during phase R: old design, new name)
-- [ ] C1 docs/DESIGN.md
-- [ ] C2 tokens (type, color, contrast test, space, motion)
-- [ ] C3 components (SeverityBadge, StatusStepper, KpiTile, EvidenceQuote, ChatTypeChip, SuggestionCard, Avatar, EmptyState, skeletons, sonner, ⌘K)
-- [ ] C4 screens: shell, dispatcher, learning moment, task card, owner, lead, playbook, sources, login, demo room
-- [ ] C5 brand mark, favicons, OG image
-- [ ] C6 landing page
-- [ ] C7 screenshot quality pass (light/dark, 1440/1280/390) + axe
+- [x] C1 docs/DESIGN.md
+- [x] C2 tokens (type, color, contrast test, space, motion)
+- [x] C3 components (SeverityBadge, StatusStepper, KpiTile, EvidenceQuote, ChatTypeChip, SuggestionCard, Avatar, EmptyState, skeletons, sonner, ⌘K)
+- [x] C4 screens: shell, dispatcher, learning moment, task card, owner, lead, playbook, sources, login, demo room
+- [x] C5 brand mark, favicons, OG image
+- [x] C6 landing page
+- [ ] C7 screenshot quality pass (light/dark, 1440/1280/390) + axe (matrix + axe done; review/fix loop in progress)
 - [ ] Phase gate + commit
 
 ## Phase D — Bulletproof demo
 - [ ] D1 `pnpm demo:check`
-- [ ] D2 offline-mode switch at runtime
+- [x] D2 offline-mode switch at runtime
 - [ ] D3 DEMO_SCRIPT.md (RU) for the new UI
 - [ ] D4 clean `docker compose up --build`, e2e golden path
 - [ ] B7 (stretch) IMAP connector

@@ -14,6 +14,16 @@ export function t(lang: Lang, key: TKey, params?: Record<string, string | number
   );
 }
 
+/** Russian plural form for n: one (1, 21), few (2–4, 22–24), many (5–20, 25…). */
+export function pluralRu(n: number, one: string, few: string, many: string): string {
+  const a = Math.abs(n) % 100;
+  const b = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (b === 1) return one;
+  if (b >= 2 && b <= 4) return few;
+  return many;
+}
+
 export function parseLang(value: string | undefined | null): Lang {
   return value === "ru" ? "ru" : "en";
 }

@@ -193,3 +193,26 @@ export async function refreshStaleDemo(
   }
   return { action: "reseeded", ageHours, companyId };
 }
+
+/** For the presenter checklist: how old the loaded scenario is, and the last pipeline run. */
+export async function demoFreshness(db: Db, companyId: string, now = new Date()) {
+  const [row] = await db
+    .select({ loadedAt: sql<string | null>`min(${messages.createdAt})` })
+    .from(messages)
+    .where(eq(messages.companyId, companyId));
+  const [run] = await db
+    .select()
+    .from(analysisRuns)
+    .where(and(eq(analysisRuns.companyId, companyId), eq(analysisRuns.task, "customer_analysis")))
+    .orderBy(desc(analysisRuns.createdAt))
+    .limit(1);
+  const ageHours = row?.loadedAt ? (now.getTime() - new Date(row.loadedAt).getTime()) / 3_600_000 : null;
+  return {
+    loadedAt: row?.loadedAt ?? null,
+    ageHours,
+    fresh: ageHours !== null && ageHours <= DEMO_MAX_AGE_HOURS,
+    lastRun: run
+      ? { at: run.createdAt, ok: run.ok, provider: run.provider, model: run.model, cached: run.cached, latencyMs: run.latencyMs }
+      : null,
+  };
+}

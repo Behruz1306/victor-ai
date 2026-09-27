@@ -4,23 +4,26 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium select-none transition-[background-color,color,box-shadow,opacity] duration-[120ms] ease-out disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:opacity-90",
-        outline: "border border-input bg-card hover:bg-muted",
-        ghost: "hover:bg-muted",
-        subtle: "bg-muted hover:bg-border/60",
-        danger: "bg-sev-5 text-white hover:opacity-90",
-        link: "text-primary underline-offset-4 hover:underline px-0",
+        default:
+          "bg-accent text-accent-fg shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-accent/90 active:bg-accent/85",
+        outline:
+          "border border-border-strong bg-surface text-fg hover:bg-surface-2 active:bg-surface-3",
+        ghost: "text-fg-2 hover:bg-surface-2 hover:text-fg active:bg-surface-3",
+        subtle: "bg-surface-2 text-fg hover:bg-surface-3",
+        danger: "bg-critical text-white hover:bg-critical/90",
+        link: "px-0 text-accent-text underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-3.5",
-        sm: "h-8 px-2.5 text-[13px]",
-        xs: "h-7 px-2 text-xs",
-        lg: "h-10 px-5",
-        icon: "h-8 w-8",
+        default: "h-9 px-3.5 text-base",
+        sm: "h-8 px-3 text-sm",
+        xs: "h-7 px-2 text-xs [&_svg]:size-3.5",
+        lg: "h-11 px-5 text-base",
+        icon: "size-8 [&_svg]:size-4",
+        "icon-sm": "size-7 [&_svg]:size-3.5",
       },
     },
     defaultVariants: { variant: "default", size: "default" },
