@@ -1,15 +1,12 @@
+import { notFound } from "next/navigation";
 import { requirePage } from "@/lib/auth/guard";
-import { getLang } from "@/lib/i18n/server";
-import { t } from "@/lib/i18n";
-import { PageHeader, EmptyState } from "@/components/ui/primitives";
+import { env } from "@/lib/env";
+import { DemoView } from "./demo-view";
 
-export default async function Page() {
+export const metadata = { title: "Demo control" };
+
+export default async function DemoPage() {
+  if (!env().demoMode) notFound();
   await requirePage("manage:demo");
-  const lang = await getLang();
-  return (
-    <div>
-      <PageHeader title={t(lang, "demo.title")} />
-      <EmptyState title={t(lang, "common.loading")} />
-    </div>
-  );
+  return <DemoView />;
 }

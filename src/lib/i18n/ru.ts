@@ -40,6 +40,7 @@ export const ru: Dict = {
   "common.all": "Все",
   "common.print": "Печать",
   "common.yes": "Да",
+  "common.notFound": "Страница не найдена.",
   "common.no": "Нет",
 
   "login.title": "Вход",
@@ -366,5 +367,10 @@ export const ru: Dict = {
   "demo.provider": "LLM-провайдер",
   "demo.workerHint": "Чтобы очередь обрабатывалась, должен работать worker (pnpm dev).",
   "demo.lastRuns": "Последние запуски анализа",
+  "demo.resetHint": "Удаляет все сообщения и всё, что построил пайплайн; пользователи и чаты остаются.",
+  "demo.messages": "Сообщения",
+  "demo.tasks": "Задачи",
+  "demo.signals": "Сигналы",
+  "demo.suggestions": "Подсказки",
   "demo.ok": "Готово",
 };

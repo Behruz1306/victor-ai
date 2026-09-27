@@ -212,7 +212,7 @@ function UnmappedRow({
             <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
               <option value="">
                 {chatType === "fleet" || chatType === "internal"
-                  ? "— shared —"
+                  ? `— ${t("src.shared")} —`
                   : `— ${t("src.orNew")} —`}
               </option>
               {data.customers.map((c) => (
@@ -343,7 +343,7 @@ function ChannelMessages({
                   </span>
                 ) : null}
                 {m.viaPulse ? (
-                  <span className="ml-1 text-[10px] text-primary">via Pulse</span>
+                  <span className="ml-1 text-[10px] text-primary">{t("disp.sentVia")}</span>
                 ) : null}
                 <div className="font-sans text-[13px] whitespace-pre-wrap">{m.text}</div>
               </div>

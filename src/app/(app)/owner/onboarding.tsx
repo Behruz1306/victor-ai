@@ -128,7 +128,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
                 <button
-                  aria-label="remove"
+                  aria-label={t("set.remove")}
                   className="text-muted-foreground hover:text-sev-5"
                   onClick={() => setItems(items.filter((x) => x.id !== c.id))}
                 >

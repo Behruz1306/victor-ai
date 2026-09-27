@@ -17,6 +17,7 @@ import type { Ctx } from "@/lib/auth/guard";
 import { matchSharedMessage } from "@/lib/ingest/ingest";
 import { visibleCustomers } from "./scope";
 import { editRate } from "./metrics";
+import type { L10n } from "@/lib/types";
 
 export type Badge = "reply_now" | "ask_fleet" | "overdue" | "complaint" | "tone" | "no_deadline";
 
@@ -278,18 +279,18 @@ export async function customerDetail(db: Db, companyId: string, customerId: stri
   // What each message produced.
   const highlights: Record<
     string,
-    { type: "task" | "signal" | "context"; label: string; kind?: string; severity?: number }[]
+    { type: "task" | "signal" | "context"; label: L10n; kind?: string; severity?: number }[]
   > = {};
   const mark = (id: string | null, h: (typeof highlights)[string][number]) => {
     if (!id) return;
     (highlights[id] ??= []).push(h);
   };
   for (const t of taskRows)
-    mark(t.createdFromMessageId, { type: "task", label: t.title.en, kind: t.kind });
+    mark(t.createdFromMessageId, { type: "task", label: t.title, kind: t.kind });
   for (const s of sigRows)
     mark(s.evidenceMessageId, {
       type: "signal",
-      label: s.kind,
+      label: s.title,
       kind: s.kind,
       severity: s.severity,
     });

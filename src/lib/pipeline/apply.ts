@@ -179,8 +179,12 @@ export async function applyAnalysis(
         summary.rejected.push({ ref: u.task_ref, reason: plan.reason });
       continue;
     }
-    // Evidence cannot predate the request.
-    const at = ev!.sentAt < task.createdAt ? task.createdAt : ev!.sentAt;
+    // Evidence cannot predate the request: a message sent before the task existed proves nothing.
+    if (ev!.sentAt.getTime() < task.createdAt.getTime()) {
+      summary.rejected.push({ ref: u.task_ref, reason: "evidence_before_request" });
+      continue;
+    }
+    const at = ev!.sentAt;
     await db.insert(taskEvents).values(
       plan.steps.map((s, i) => ({
         companyId,
@@ -311,6 +315,24 @@ export async function applyAnalysis(
         .where(and(eq(playbookRules.companyId, companyId), inArray(playbookRules.id, ruleIds)));
     }
     summary.suggestionsCreated++;
+  }
+  // A chat that got no suggestion this run no longer needs action: retire its old one.
+  const proposedChannels = new Set(
+    out.suggestions.map((x) => maps.channel.get(x.channel_id)?.dbId).filter(Boolean) as string[],
+  );
+  const quiet = [...maps.channel.values()].map((c) => c.dbId).filter((id) => !proposedChannels.has(id));
+  if (quiet.length) {
+    await db
+      .update(suggestions)
+      .set({ status: "superseded" })
+      .where(
+        and(
+          eq(suggestions.companyId, companyId),
+          eq(suggestions.customerId, customer.id),
+          eq(suggestions.status, "pending"),
+          inArray(suggestions.channelId, quiet),
+        ),
+      );
   }
   // Pending suggestions whose task is already closed are stale.
   await db.execute(sql`

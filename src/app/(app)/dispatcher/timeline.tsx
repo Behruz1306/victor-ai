@@ -6,6 +6,7 @@ import { useT } from "@/components/providers";
 import { Badge, EmptyState } from "@/components/ui/primitives";
 import { ChatTypeChip, SignalBadge, UntrustedBadge, useClock } from "@/components/common";
 import { cn } from "@/lib/utils";
+import { pick } from "@/lib/types";
 import type { Detail } from "./types";
 
 export function Timeline({
@@ -120,7 +121,7 @@ export function Timeline({
                       {marks.map((x, i) =>
                         x.type === "task" ? (
                           <Badge key={i} tone="primary">
-                            <ListTodo /> {t("disp.createdTask")}: {x.label}
+                            <ListTodo /> {t("disp.createdTask")}: {pick(x.label, lang)}
                           </Badge>
                         ) : (
                           <SignalBadge key={i} kind={x.kind!} severity={x.severity ?? 3} />

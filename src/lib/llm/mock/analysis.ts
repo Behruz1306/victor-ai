@@ -275,18 +275,20 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
     m: CtxMessage,
     opts: { allowKindFallback: boolean; preferFrom?: boolean },
   ): T[] {
+    // A message can only speak about requests that already existed when it was sent.
+    const known = tasks.filter((t) => t.requestAt.getTime() <= m.sentAt.getTime());
     if (m.replyToId) {
-      const hit = tasks.filter((t) => t.createdFromId === m.replyToId);
+      const hit = known.filter((t) => t.createdFromId === m.replyToId);
       if (hit.length) return hit;
     }
     const refs = extractRefs(m.text);
     if (refs.length) {
-      const hit = tasks.filter((t) => t.refs.some((r) => refs.includes(r)));
+      const hit = known.filter((t) => t.refs.some((r) => refs.includes(r)));
       if (hit.length) return hit;
     }
     const trucks = extractTrucks(m.text);
     if (trucks.length) {
-      const hit = tasks.filter(
+      const hit = known.filter(
         (t) =>
           open(t) &&
           (t.trucks.some((x) => trucks.includes(x)) ||
@@ -294,7 +296,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
       );
       if (hit.length) return hit;
     }
-    const byCity = tasks.filter(
+    const byCity = known.filter(
       (t) =>
         open(t) && t.lane && (mentionsCity(m.text, t.lane.from) || mentionsCity(m.text, t.lane.to)),
     );
@@ -307,7 +309,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
     }
     if (opts.allowKindFallback) {
       const hint = kindHint(m.text);
-      const inChannel = tasks.filter(
+      const inChannel = known.filter(
         (t) =>
           open(t) &&
           (!hint || t.kind === hint || (hint === "quote" && t.kind === "truck_availability")) &&
@@ -421,7 +423,7 @@ export function mockCustomerAnalysis(input: AnalysisInput): CustomerAnalysis {
         const direct = tasksFor(m, { allowKindFallback: true });
         if (direct.length) return direct;
         const waiting = tasks.filter(
-          (t) => open(t) && t.status === "received" && t.channelId === m.channelId,
+          (t) => open(t) && t.status === "received" && t.channelId === m.channelId && t.requestAt <= m.sentAt,
         );
         return waiting.length ? [waiting[waiting.length - 1]!] : [];
       })();
@@ -622,7 +624,7 @@ function buildSuggestions(
       const dest = t.lane ? ` to ${t.lane.to.replace(/,? [A-Z]{2}$/, "")}` : "";
       const apologetic = complaintOpen(t) && !st.noApology;
       const text = finish(
-        `${hi}${apologetic ? sorry("apologies for the slow updates. ") : ""}${refTxt[0]!.toUpperCase()}${refTxt.slice(1)}${truck} is ${t.eta.onSchedule ? "on schedule" : "moving"} — ETA${dest} ${st.tz ? "" : "around "}${time(t.eta.at)}. I'll keep you posted if anything changes.`,
+        `${hi}${apologetic ? `apologies for the slow updates. ${refTxt[0]!.toUpperCase()}${refTxt.slice(1)}` : refTxt}${truck} is ${t.eta.onSchedule ? "on schedule" : "moving"} — ETA${dest} ${st.tz ? "" : "around "}${time(t.eta.at)}. I'll keep you posted if anything changes.`,
       );
       offer(chId, {
         priority: 100,

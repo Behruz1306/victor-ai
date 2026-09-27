@@ -70,10 +70,10 @@ Tick items as they are finished. Blockers go to the bottom section.
 - [x] Phase gate + commit
 
 ## Phase 8 — Demo control & polish
-- [ ] `/demo` control room (reset, load yesterday, live replay start/stop, queue status)
-- [ ] Visual polish, loading/empty/error states, EN/RU completeness, favicon + brand constant
-- [ ] `docs/DEMO_SCRIPT.md` (RU, minute by minute + fallback)
-- [ ] Phase gate + commit
+- [x] `/demo` control room (reset, load yesterday, live replay start/stop, queue status)
+- [x] Visual polish, loading/empty/error states, EN/RU completeness, favicon + brand constant
+- [x] `docs/DEMO_SCRIPT.md` (RU, minute by minute + fallback)
+- [x] Phase gate + commit
 
 ## Phase 9 — Hardening & packaging
 - [ ] Tenant isolation test + RBAC tests

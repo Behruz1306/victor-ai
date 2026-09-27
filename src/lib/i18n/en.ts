@@ -40,6 +40,7 @@ export const en = {
   "common.all": "All",
   "common.print": "Print",
   "common.yes": "Yes",
+  "common.notFound": "Page not found.",
   "common.no": "No",
 
   // login
@@ -383,6 +384,11 @@ export const en = {
   "demo.provider": "LLM provider",
   "demo.workerHint": "The worker must be running (pnpm dev) to process the queue.",
   "demo.lastRuns": "Last analysis runs",
+  "demo.resetHint": "Deletes all messages and everything the pipeline produced; keeps users and chats.",
+  "demo.messages": "Messages",
+  "demo.tasks": "Tasks",
+  "demo.signals": "Signals",
+  "demo.suggestions": "Suggestions",
   "demo.ok": "Done",
 } as const;
 
