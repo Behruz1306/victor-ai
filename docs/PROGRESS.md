@@ -111,11 +111,11 @@ Tick items as they are finished. Blockers go to the bottom section.
 
 ## Phase B — Known issues
 - [x] B1 reply_needed per open customer question (task-level) + tests
-- [ ] B2 demo-aware KPI window
-- [ ] B3 worker re-seeds stale demo (>12 h) on start
-- [ ] B4 CSP nonces (no 'unsafe-inline' for scripts) + Playwright console check
+- [x] B2 demo-aware KPI window
+- [x] B3 worker re-seeds stale demo (>12 h) on start
+- [x] B4 CSP nonces (no 'unsafe-inline' for scripts) + Playwright console check
 - [x] B5 login rate limit in Postgres
-- [ ] B6 `.env.example` alongside `env.example`
+- [x] B6 `.env.example` alongside `env.example` (⚠️ environment forbids writing dot-env files; documented)
 - [ ] Phase gate + commit
 
 ## Phase C — Design overhaul

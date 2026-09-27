@@ -20,7 +20,9 @@ export type AuditAction =
   | "transcript_uploaded"
   | "demo_reset"
   | "demo_loaded"
-  | "demo_replay";
+  | "demo_replay"
+  | "demo_reseeded"
+  | "llm_mode_changed";
 
 export async function audit(
   entry: {

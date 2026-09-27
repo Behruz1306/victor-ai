@@ -18,7 +18,7 @@ import {
 } from "@/lib/db/schema";
 import { cancelPending, enqueue, queueStats } from "@/lib/jobs/queue";
 import { DEFAULT_SLA, DEFAULT_CONSENT_TEXT } from "@/lib/types";
-import { demoData, replayMessages } from "./seed";
+import { demoData, findDemoCompanyId, loadYesterday, replayMessages } from "./seed";
 
 /**
  * Wipes everything the pipeline produced (and all messages) for the demo company, but keeps
@@ -155,4 +155,41 @@ export async function demoStatus(db: Db, companyId: string) {
       at: r.createdAt,
     })),
   };
+}
+
+export const DEMO_MAX_AGE_HOURS = 12;
+
+/**
+ * Worker start in DEMO_MODE: a scenario loaded more than 12 h ago is re-seeded relative to now,
+ * so "yesterday" is really yesterday on stage. Returns what happened for the log.
+ */
+export async function refreshStaleDemo(
+  db: Db,
+  now = new Date(),
+  maxAgeHours = DEMO_MAX_AGE_HOURS,
+): Promise<{ action: "none" | "reseeded"; ageHours: number | null; companyId: string | null }> {
+  const companyId = await findDemoCompanyId(db);
+  if (!companyId) return { action: "none", ageHours: null, companyId: null };
+  const [row] = await db
+    .select({ loadedAt: sql<string | null>`min(${messages.createdAt})` })
+    .from(messages)
+    .where(eq(messages.companyId, companyId));
+  if (!row?.loadedAt) return { action: "none", ageHours: null, companyId };
+  const ageHours = (now.getTime() - new Date(row.loadedAt).getTime()) / 3_600_000;
+  if (ageHours <= maxAgeHours) return { action: "none", ageHours, companyId };
+  await cancelPending(db, "replay_message", companyId);
+  await resetDemoData(db, companyId);
+  await loadYesterday(db, companyId, now);
+  // Messages queue their own analysis; make sure every customer gets one.
+  const all = await db.select({ id: customers.id }).from(customers).where(eq(customers.companyId, companyId));
+  for (const c of all) {
+    await enqueue(db, {
+      type: "analyze_customer",
+      companyId,
+      payload: { companyId, customerId: c.id },
+      dedupeKey: `analyze:${c.id}`,
+      debounceMs: 500,
+    });
+  }
+  return { action: "reseeded", ageHours, companyId };
 }

@@ -1,20 +1,8 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV !== "production";
-
-// Next.js needs inline scripts for hydration; dev additionally needs eval for HMR.
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'",
-].join("; ");
+// Content-Security-Policy with a per-request script nonce is set in src/middleware.ts.
+// API routes answer JSON only; they still get a locked-down policy here.
+const apiCsp = "default-src 'none'; frame-ancestors 'none'";
 
 const nextConfig: NextConfig = {
   // `pnpm dev` compiles into .next-dev, so `pnpm build` / e2e never clobber a running dev server.
@@ -26,9 +14,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/api/:path*",
+        headers: [{ key: "Content-Security-Policy", value: apiCsp }],
+      },
+      {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: csp },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

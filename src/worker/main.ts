@@ -9,6 +9,8 @@ import { providerChain } from "@/lib/llm/providers";
 import { runOnce } from "./runner";
 import { startBot, type RunningBot } from "./telegram";
 import { tryHoldLock, type HeldLock } from "@/lib/db/lock";
+import { DEMO_MAX_AGE_HOURS, refreshStaleDemo } from "@/lib/demo/control";
+import { audit } from "@/lib/audit";
 import { schedulerTick } from "./scheduler";
 
 const db = getDb();
@@ -93,6 +95,27 @@ async function telegramLoop() {
   }
 }
 
+/** DEMO_MODE: a scenario older than 12 h is re-seeded so "yesterday" is really yesterday. */
+async function refreshDemoOnStart() {
+  const lock = await tryHoldLock("victor:demo-reseed").catch(() => null);
+  if (!lock) return; // another worker is doing it
+  try {
+    const r = await refreshStaleDemo(db);
+    if (r.action === "reseeded") {
+      console.log(
+        `[demo] scenario was loaded ${r.ageHours!.toFixed(1)} h ago (> ${DEMO_MAX_AGE_HOURS} h) — re-seeded relative to now; analysis queued`,
+      );
+      await audit({ companyId: r.companyId!, userId: null, action: "demo_reseeded", meta: { ageHours: Math.round(r.ageHours!) } });
+    } else if (r.ageHours !== null) {
+      console.log(`[demo] scenario is fresh (loaded ${r.ageHours.toFixed(1)} h ago)`);
+    }
+  } catch (err) {
+    console.error("[demo] freshness check failed:", err instanceof Error ? err.message : err);
+  } finally {
+    await lock.release();
+  }
+}
+
 async function main() {
   const chain = providerChain()
     .map((p) => (p.kind === "mock" ? p.id : `${p.id}:${p.model}`))
@@ -107,6 +130,7 @@ async function main() {
     dedupeKey: `retention:${new Date().toISOString().slice(0, 10)}`,
     delayMs: 60_000,
   });
+  if (env().demoMode) await refreshDemoOnStart();
   const stop = async (signal: string) => {
     if (!running) return;
     console.log(`[worker] ${signal} — shutting down`);

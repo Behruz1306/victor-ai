@@ -1,6 +1,8 @@
 import { and, desc, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { companies, digests, signals, tasks } from "@/lib/db/schema";
+import { companies, digests, messages, signals, tasks } from "@/lib/db/schema";
+import { env } from "@/lib/env";
+import { localParts, zonedToUtc } from "@/lib/time";
 import { generateOwnerDigest } from "@/lib/pipeline/digest";
 import type { DigestItem } from "@/lib/types";
 
@@ -31,8 +33,8 @@ export async function ownerKpis(db: Db, companyId: string, now = new Date()) {
   const riskySet = new Set(risky.map((r) => r.taskId).filter(Boolean));
   const atRisk = open.filter((t) => t.risk >= 2 || riskySet.has(t.id)).length;
 
-  // Rolling 24 h (the demo's "yesterday" would never show up in a calendar "today").
-  const since = new Date(now.getTime() - 24 * 3_600_000);
+  const window = await kpiWindow(db, companyId, now);
+  const since = window.from;
   const rows = await db.execute<{ received_at: Date; ack_at: Date | null }>(sql`
     select r.at as received_at,
       (select min(a.at) from task_events a where a.task_id = r.task_id and a.to_status = 'acknowledged') as ack_at
@@ -50,7 +52,35 @@ export async function ownerKpis(db: Db, companyId: string, now = new Date()) {
     avgAckMinutes: ack.minutes,
     ackSample: ack.count,
     requests24h: rows.length,
+    window: { from: window.from.toISOString(), kind: window.kind },
   };
+}
+
+/**
+ * KPI window. Real companies: rolling 24 h. The demo company in DEMO_MODE: the whole scenario
+ * (from the local start of the day of its first message), so the owner screen keeps its numbers
+ * when the seeded "yesterday" is more than 24 h old.
+ */
+export async function kpiWindow(
+  db: Db,
+  companyId: string,
+  now = new Date(),
+): Promise<{ from: Date; kind: "rolling24h" | "demoScenario" }> {
+  const rolling = { from: new Date(now.getTime() - 24 * 3_600_000), kind: "rolling24h" as const };
+  if (!env().demoMode) return rolling;
+  const [company] = await db
+    .select({ isDemo: companies.isDemo, tz: companies.timezone })
+    .from(companies)
+    .where(eq(companies.id, companyId));
+  if (!company?.isDemo) return rolling;
+  const [first] = await db
+    .select({ at: sql<Date>`min(${messages.sentAt})` })
+    .from(messages)
+    .where(eq(messages.companyId, companyId));
+  if (!first?.at) return rolling;
+  const p = localParts(new Date(first.at), company.tz);
+  const dayStart = zonedToUtc(p.y, p.m, p.d, 0, 0, company.tz);
+  return dayStart < rolling.from ? { from: dayStart, kind: "demoScenario" } : rolling;
 }
 
 /** Latest owner digest, minus items whose signal is no longer open. Generates one if missing. */
