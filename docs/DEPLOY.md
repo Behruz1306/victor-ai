@@ -114,6 +114,32 @@ Everything in Docker instead: `docker compose up -d --build` → http://localhos
 If the venue has no internet, the mock provider keeps the whole golden path working
 (`LLM_PROVIDER=mock` forces it even with a key set). See `docs/DEMO_SCRIPT.md` → «План Б».
 
+## (d) One Next.js service + Neon Postgres (LivOps and similar Node PaaS)
+
+For platforms that build a Node app from GitHub and run **one** process (no Docker, no second
+service), the worker runs inside the web process:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `corepack enable && pnpm install --frozen-lockfile && pnpm build` |
+| Start command | `pnpm start` (listens on `0.0.0.0:$PORT`) |
+| Health check | `GET /api/health` → `{"ok":true,"db":"up","worker":{"mode":"inline","ready":true}}` |
+
+Environment: `DATABASE_URL` (Neon, **direct** connection string with `sslmode=require` — not the
+pooled one: the queue uses row locks and the Telegram poller an advisory lock), `SESSION_SECRET`
+(`openssl rand -hex 32`), `APP_URL` (the public https URL), `DEMO_MODE=true`, `INLINE_WORKER=true`;
+optional `GEMINI_API_KEY` / `LLM_API_KEY` / `TELEGRAM_BOT_TOKEN`.
+
+With `INLINE_WORKER=true` the server, on start (`src/instrumentation.ts` → `src/worker/inline.ts`):
+runs `CREATE EXTENSION IF NOT EXISTS vector` and all migrations, seeds the demo company when the
+database is empty and `DEMO_MODE=true` (pipeline runs in the background), then starts the job
+runner, the SLA scheduler and the Telegram long poll in the same process. Run only one instance
+(or keep extra instances on `INLINE_WORKER=false`): the Telegram poller is protected by a Postgres
+advisory lock either way.
+
+Neon: create a project (e.g. region `aws-eu-central-1`), copy the direct connection string with
+`?sslmode=require`. pgvector is available on Neon; the migration enables it.
+
 ## Telegram bot
 
 1. In Telegram open **@BotFather** → `/newbot` → name (`Victor AI`) → username ending in `bot`

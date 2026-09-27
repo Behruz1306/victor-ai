@@ -7,7 +7,8 @@ const apiCsp = "default-src 'none'; frame-ancestors 'none'";
 const nextConfig: NextConfig = {
   // `pnpm dev` compiles into .next-dev, so `pnpm build` / e2e never clobber a running dev server.
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  output: "standalone",
+  // Docker builds a standalone server (NEXT_OUTPUT=standalone); PaaS hosts run `next start`.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   poweredByHeader: false,
   typedRoutes: false,
   devIndicators: false,

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { env } from "@/lib/env";
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { ZodError } from "zod";
@@ -61,9 +62,11 @@ export function isSameOrigin(headers: Headers): boolean {
   const origin = headers.get("origin");
   if (!origin) return site === "same-origin";
   const host = headers.get("x-forwarded-host") ?? headers.get("host");
-  if (!host) return false;
   try {
-    return new URL(origin).host === host;
+    const o = new URL(origin).host;
+    if (host && o === host) return true;
+    // Behind a proxy that rewrites Host: our own configured public origin is same-origin too.
+    return o === new URL(env().appUrl).host;
   } catch {
     return false;
   }

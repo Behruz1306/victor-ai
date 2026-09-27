@@ -13,7 +13,7 @@
     "dev:worker": "tsx watch --env-file-if-exists=.env src/worker/main.ts",
     "build": "next build && pnpm build:worker",
     "build:worker": "node scripts/build-worker.mjs",
-    "start": "next start -p 3001",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-3001}",
     "start:worker": "node --env-file-if-exists=.env dist/worker.mjs",
     "start:all": "concurrently -k -n web,worker -c blue,magenta \"pnpm start\" \"pnpm start:worker\"",
     "typecheck": "tsc --noEmit",
